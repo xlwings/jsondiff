@@ -39,7 +39,8 @@ def list_diff(X, Y):
     for i in range(1, m+1):
         for j in range(1, n+1):
             _, s = obj_diff(X[i-1], Y[j-1])
-            #x = C[i-1][j-1] + s
+            # Following lines are part of the original LCS algorithm
+            # left in the code in case modification turns out to be problematic
             #if X[i-1] == Y[j-1]:
             #    C[i][j] = C[i-1][j-1] + 1
             #else:
