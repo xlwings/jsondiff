@@ -8,7 +8,7 @@ setup(
     packages=['jsondiff'],
     version=version,
     description='Diff JSON and JSON-like structures in Python',
-    author='Eric Reynolds',
+    author='Zoomer Analytics LLC',
     author_email='eric.reynolds@zoomeranalytics.com',
     url='https://github.com/ZoomerAnalytics/jsondiff',
     keywords=['json', 'diff', 'diffing', 'difference', 'patch', 'delta', 'dict', 'LCS'],
