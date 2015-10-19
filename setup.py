@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as f:
+with open(os.path.join(os.path.dirname(__file__), 'jsondiff', '__init__.py')) as f:
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
 
 setup(
