@@ -9,5 +9,8 @@ setup(
     author_email='eric.reynolds@zoomeranalytics.com',
     url='https://github.com/ZoomerAnalytics/jsondiff',
     keywords=['json', 'diff', 'diffing', 'difference', 'patch', 'delta', 'dict', 'LCS'],
-    classifiers=[],
+    classifiers=[
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 3',
+    ],
 )

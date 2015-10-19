@@ -1,3 +1,4 @@
+import sys
 import json
 
 from .symbols import *
@@ -8,6 +9,14 @@ from .symbols import Symbol
 # - when source is dict and diff is a dict -> patch
 # - when source is list and diff is a list patch dict -> patch
 # - else -> replacement
+
+# Python 2 vs 3
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    string_types = str
+else:
+    string_types = basestring
 
 
 def list_diff_0(C, X, Y, i, j):
@@ -169,7 +178,7 @@ class DiffEncoder(json.JSONEncoder):
     def _escape(self, o):
         if type(o) is Symbol:
             return "$" + o.label
-        if isinstance(o, basestring) and o.startswith('$'):
+        if isinstance(o, string_types) and o.startswith('$'):
             return "$" + o
         return o
 
@@ -191,7 +200,7 @@ class DiffDecoder(json.JSONDecoder):
     }
 
     def _unescape(self, o):
-        if isinstance(o, basestring):
+        if isinstance(o, string_types):
             sym = DiffDecoder._symbol_map.get(o, None)
             if sym is not None:
                 return sym
@@ -227,7 +236,7 @@ dumps = dump
 
 
 def load(f):
-    if isinstance(f, basestring):
+    if isinstance(f, string_types):
         return json.loads(f, cls=DiffDecoder)
     else:
         return json.load(f, cls=DiffDecoder)
@@ -237,11 +246,11 @@ loads = load
 
 def diff(a, b, parse=False, dump=False, indent=None):
     if parse:
-        if isinstance(a, basestring):
+        if isinstance(a, string_types):
             a = json.loads(a)
         else:
             a = json.load(a)
-        if isinstance(b, basestring):
+        if isinstance(b, string_types):
             b = json.loads(b)
         else:
             b = json.load(b)
