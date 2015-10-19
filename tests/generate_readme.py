@@ -1,3 +1,5 @@
+# this file doesn't work in Py3 - but it's only used for generating the repo front page
+
 def do(cmd, comment=None):
     if comment:
         print "# " + comment
