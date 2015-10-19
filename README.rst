@@ -1,8 +1,6 @@
 jsondiff
 ========
 
-Diff JSON and JSON-like structures in Python
-
 .. code-block:: python
 
     >>> from jsondiff import diff
