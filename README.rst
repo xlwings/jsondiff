@@ -4,30 +4,28 @@ jsondiff
 .. code-block:: python
 
     >>> from jsondiff import diff
-    
-    >>> diff({'a': 1}, {'a': 1, 'b': 2})
-    {<insert>: {'b': 2}}
-    
-    >>> diff({'a': 1, 'b': 3}, {'a': 1, 'b': 2})
-    {<update>: {'b': 2}}
-    
-    >>> diff({'a': 1, 'b': 3}, {'a': 1})
-    {<delete>: ['b']}
-    
+
+    >>> diff({'a': 1, 'b': 2}, {'b': 3, 'c': 4})
+    {<delete>: ['a'], 'c': 4, 'b': 3}
+
     >>> diff(['a', 'b', 'c'], ['a', 'b', 'c', 'd'])
     {<insert>: [(3, 'd')]}
-    
+
     >>> diff(['a', 'b', 'c'], ['a', 'c'])
     {<delete>: [1]}
-    
-    # Similar items get patched
-    >>> diff(['a', {'x': 3}, 'c'], ['a', {'x': 3, 'y': 4}, 'c'])
-    {<update>: [(1, {<insert>: {'y': 4}})]}
-    
+
+    # Typical diff looks like what you'd expect...
+    >>> diff({'a': [0, {'b': 4}, 1]}, {'a': [0, {'b': 5}, 1]})
+    {'a': {1: {'b': 5}}}
+
+    # ...but similarity is taken into account
+    >>> diff({'a': [0, {'b': 4}, 1]}, {'a': [0, {'c': 5}, 1]})
+    {'a': {<delete>: [1], <insert>: [(1, {'c': 5})]}}
+
     # Special handling of sets
     >>> diff({'a', 'b', 'c'}, {'a', 'c', 'd'})
-    {<add>: set(['d']), <discard>: set(['b'])}
-    
+    {<discard>: set(['b']), <add>: set(['d'])}
+
     # Parse and dump JSON
     >>> print diff('["a", "b", "c"]', '["a", "c", "d"]', parse=True, dump=True, indent=2)
     {
@@ -41,4 +39,3 @@ jsondiff
         ]
       ]
     }
-    

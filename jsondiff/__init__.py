@@ -58,7 +58,7 @@ def list_diff(X, Y):
             C[i][j] = max(C[i][j-1], C[i-1][j], C[i-1][j-1] + s)
     inserted = []
     deleted = []
-    changed = []
+    changed = {}
     tot_s = 0.0
     for sign, value, pos, s in list_diff_0(C, X, Y, len(X), len(Y)):
         if sign == 1:
@@ -66,21 +66,23 @@ def list_diff(X, Y):
         elif sign == -1:
             deleted.append(pos)
         elif sign == 0 and s < 1:
-            changed.append((pos, value))
+            changed[pos] = value
         tot_s += s
-    s = tot_s / (len(X) + len(inserted))
+    tot_n = len(X) + len(inserted)
+    if tot_n == 0:
+        s = 1.0
+    else:
+        s = tot_s / tot_n
     if s == 0.0:
         return Y, 0.0
     elif s == 1.0:
-        return identical, 1.0
+        return {}, 1.0
     else:
-        d = {}
+        d = changed
         if inserted:
             d[insert] = inserted
         if deleted:
             d[delete] = deleted
-        if changed:
-            d[update] = changed
         return d, s
 
 
@@ -88,7 +90,7 @@ def set_diff(a, b):
     removed = a.difference(b)
     added = b.difference(a)
     if not removed and not added:
-        return identical, 1.0
+        return {}, 1.0
     ranking = sorted(
         (
             (obj_diff(x, y)[1], x, y)
@@ -109,7 +111,8 @@ def set_diff(a, b):
             n_common += 1
         if not r2 or not a2:
             break
-    s = s_common / (len(a) + len(added))
+    n_tot = len(a) + len(added)
+    s = s_common / n_tot if n_tot != 0 else 1.0
     if s == 0.0 or len(removed) == len(a):
         return b, 0.0
     else:
@@ -128,7 +131,6 @@ def dict_diff(a, b):
     nmatched = 0
     smatched = 0.0
     changed = {}
-    added = {}
     for k, v in a.items():
         w = b.get(k, missing)
         if w is missing:
@@ -139,22 +141,19 @@ def dict_diff(a, b):
             d, s = obj_diff(v, w)
             if s < 1.0:
                 changed[k] = d
-            smatched += s
+            smatched += 0.5 + 0.5 * s
     for k, v in b.items():
         if k not in a:
             nadded += 1
-            added[k] = v
-    s = smatched / (nremoved + nmatched + nadded)
+            changed[k] = v
+    n_tot = nremoved + nmatched + nadded
+    s = smatched / n_tot if n_tot != 0 else 1.0
     if s == 0.0:
-        return b, 0.0
+        return {replace: b}, 0.0
     elif s == 1.0:
-        return identical, 1.0
+        return {}, 1.0
     else:
-        d = {}
-        if added:
-            d[insert] = added
-        if changed:
-            d[update] = changed
+        d = changed
         if removed:
             d[delete] = removed
         return d, s
@@ -162,7 +161,7 @@ def dict_diff(a, b):
 
 def obj_diff(a, b):
     if a is b:
-        return identical, 1.0
+        return {}, 1.0
     if type(a) is dict and type(b) is dict:
         return dict_diff(a, b)
     elif isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
@@ -172,7 +171,7 @@ def obj_diff(a, b):
     elif a != b:
         return b, 0.0
     else:
-        return identical, 1.0
+        return {}, 1.0
 
 
 class DiffEncoder(json.JSONEncoder):
@@ -198,7 +197,7 @@ class DiffEncoder(json.JSONEncoder):
 class DiffDecoder(json.JSONDecoder):
     _symbol_map = {
         "$" + symbol.label: symbol
-        for symbol in (add, discard, insert, delete, update, identical)
+        for symbol in (add, discard, insert, delete, update)
     }
 
     def _unescape(self, o):

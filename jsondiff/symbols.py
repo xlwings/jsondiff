@@ -13,6 +13,7 @@ insert = Symbol('insert')
 update = Symbol('update')
 add = Symbol('add')
 discard = Symbol('discard')
+replace = Symbol('replace')
 
 __all__ = [
     'missing',
@@ -21,5 +22,6 @@ __all__ = [
     'insert',
     'update',
     'add',
-    'discard'
+    'discard',
+    'replace'
 ]
