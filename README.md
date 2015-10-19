@@ -1,7 +1,7 @@
 # jsondiff
 Diff JSON and JSON-like structures in Python
 
-```
+```python
 >>> from jsondiff import diff
 
 >>> diff({'a': 1}, {'a': 1, 'b': 2})
