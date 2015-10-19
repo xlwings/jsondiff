@@ -1,3 +1,5 @@
+import os
+import re
 from distutils.core import setup
 
 with open(os.path.join(os.path.dirname(__file__), 'jsondiff', '__init__.py')) as f:
