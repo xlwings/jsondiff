@@ -1,9 +1,12 @@
 from distutils.core import setup
 
+with open(os.path.join(os.path.dirname(__file__), 'xlwings', '__init__.py')) as f:
+    version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
+
 setup(
     name='jsondiff',
     packages=['jsondiff'],
-    version='0.1',
+    version=version,
     description='Diff JSON and JSON-like structures in Python',
     author='Eric Reynolds',
     author_email='eric.reynolds@zoomeranalytics.com',
