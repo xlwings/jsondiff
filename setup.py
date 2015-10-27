@@ -1,13 +1,13 @@
 import os
 import re
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 with open(os.path.join(os.path.dirname(__file__), 'jsondiff', '__init__.py')) as f:
     version = re.compile(r".*__version__ = '(.*?)'", re.S).match(f.read()).group(1)
 
 setup(
     name='jsondiff',
-    packages=['jsondiff'],
+    packages=find_packages(),
     version=version,
     description='Diff JSON and JSON-like structures in Python',
     author='Zoomer Analytics LLC',
