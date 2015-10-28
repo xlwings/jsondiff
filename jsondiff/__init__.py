@@ -20,7 +20,6 @@ if PY3:
 else:
     string_types = basestring
 
-
 def list_diff_0(C, X, Y, i, j):
     if i > 0 and j > 0:
         d, s = obj_diff(X[i-1], Y[j-1])
@@ -225,44 +224,78 @@ def similarity(a, b):
     return obj_diff(a, b)[1]
 
 
-def dump(d, f=None, indent=None):
-    if f is None:
-        return json.dumps(d, indent=indent, cls=DiffEncoder)
+
+
+def dump_diff(d, dst=None, **kwargs):
+    if dst is None:
+        return json.dumps(d, cls=DiffEncoder, **kwargs)
     else:
-        return json.dump(d, f, indent=indent, cls=DiffEncoder)
-
-__dump = dump
-
-dumps = dump
+        return json.dump(d, dst, cls=DiffEncoder, **kwargs)
 
 
-def load(f):
-    if isinstance(f, string_types):
-        return json.loads(f, cls=DiffDecoder)
+def load_diff(src, **kwargs):
+    if isinstance(src, string_types):
+        return json.loads(src, cls=DiffDecoder, **kwargs)
     else:
-        return json.load(f, cls=DiffDecoder)
+        return json.load(src, cls=DiffDecoder, **kwargs)
 
-loads = load
+def _merge_dicts(*dicts):
+    ret = {}
+    for d in dicts:
+        ret.update(d)
+    return ret
 
 
-def diff(a, b, parse=False, dump=False, indent=None):
-    if parse:
-        if isinstance(a, string_types):
-            a = json.loads(a)
+class JsonDifferOptions(object):
+    pass
+
+
+class JsonDiffer(object):
+    def __init__(self, load_json=False, dump_diff=False, load_json_args={}, dump_diff_args={}):
+        self.options = JsonDifferOptions()
+        self.options.load_json = load_json
+        self.options.load_json_args = load_json_args
+        self.options.dump_diff = dump_diff
+        self.options.dump_diff_args = dump_diff_args
+
+    def load_json(self, src, **kwargs):
+        if isinstance(src, string_types):
+            return json.loads(src, cls=DiffDecoder)
         else:
-            a = json.load(a)
-        if isinstance(b, string_types):
-            b = json.loads(b)
+            return json.load(src, cls=DiffDecoder)
+
+    def load_diff(self, src, **kwargs):
+        if isinstance(src, string_types):
+            return json.loads(src, cls=DiffDecoder, **kwargs)
         else:
-            b = json.load(b)
-    d, s = obj_diff(a, b)
-    if dump:
-        if dump is True:
-            return __dump(d, indent=indent)
+            return json.load(src, cls=DiffDecoder, **kwargs)
+
+    def diff(self, a, b, load=missing, dump=missing):
+        if load is missing:
+            load = self.options.load
+        if dump is missing:
+            dump = self.options.dump
+
+        if parse:
+            a = self.options.json_parser
+
+            if isinstance(a, string_types):
+                a = json.loads(a, **self.options.parse_args)
+            else:
+                a = json.load(a, **self.options.parse_args)
+            if isinstance(b, string_types):
+                b = json.loads(b, **self.options.parse_args)
+            else:
+                b = json.load(b, **self.options.parse_args)
+        d, s = obj_diff(a, b)
+
+        if dump:
+            if dump is True:
+                return _dump(d, **self.options.dump_args)
+            else:
+                return _dump(d, dump, **self.options.dump_args)
         else:
-            return __dump(d, dump, indent=indent)
-    else:
-        return d
+            return d
 
 
 __all__ = [
