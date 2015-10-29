@@ -32,6 +32,9 @@ class JsonDumper(object):
             return json.dump(obj, dest, **self.kwargs)
 
 
+default_dumper = JsonDumper()
+
+
 class JsonLoader(object):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
@@ -41,6 +44,9 @@ class JsonLoader(object):
             return json.loads(src, **self.kwargs)
         else:
             return json.load(src, **self.kwargs)
+
+
+default_loader = JsonLoader()
 
 
 class JsonDiffSyntax(object):
@@ -203,10 +209,17 @@ builtin_syntaxes = {
 
 class JsonDiffer(object):
 
-    def __init__(self, syntax='compact'):
-        if isinstance(syntax, string_types):
-            syntax = builtin_syntaxes[syntax]
-        self._syntax = syntax
+    class Options(object):
+        pass
+
+    def __init__(self, syntax='compact', load=False, dump=False, marshal=False, loader=default_loader, dumper=default_dumper):
+        self.options = JsonDiffer.Options()
+        self.options.syntax = builtin_syntaxes.get(syntax, syntax)
+        self.options.load = load
+        self.options.dump = dump
+        self.options.marshal = marshal or dump
+        self.options.loader = loader
+        self.options.dumper = dumper
         self._symbol_map = {
             symbol.label: symbol
             for symbol in (add, discard, insert, delete, update)
@@ -263,7 +276,7 @@ class JsonDiffer(object):
             s = 1.0
         else:
             s = tot_s / tot_n
-        return self._syntax.emit_list_diff(X, Y, s, inserted, changed, deleted), s
+        return self.options.syntax.emit_list_diff(X, Y, s, inserted, changed, deleted), s
 
     def _set_diff(self, a, b):
         removed = a.difference(b)
@@ -292,7 +305,7 @@ class JsonDiffer(object):
                 break
         n_tot = len(a) + len(added)
         s = s_common / n_tot if n_tot != 0 else 1.0
-        return self._syntax.emit_set_diff(a, b, s, added, removed), s
+        return self.options.syntax.emit_set_diff(a, b, s, added, removed), s
 
     def _dict_diff(self, a, b):
         removed = {}
@@ -319,11 +332,11 @@ class JsonDiffer(object):
                 added[k] = v
         n_tot = nremoved + nmatched + nadded
         s = smatched / n_tot if n_tot != 0 else 1.0
-        return self._syntax.emit_dict_diff(a, b, s, added, changed, removed), s
+        return self.options.syntax.emit_dict_diff(a, b, s, added, changed, removed), s
 
     def _obj_diff(self, a, b):
         if a is b:
-            return self._syntax.emit_value_diff(a, b, 1.0), 1.0
+            return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
         if type(a) is dict and type(b) is dict:
             return self._dict_diff(a, b)
         elif isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
@@ -331,12 +344,33 @@ class JsonDiffer(object):
         elif isinstance(a, set) and isinstance(b, set):
             return self._set_diff(a, b)
         elif a != b:
-            return self._syntax.emit_value_diff(a, b, 0.0), 0.0
+            return self.options.syntax.emit_value_diff(a, b, 0.0), 0.0
         else:
-            return self._syntax.emit_value_diff(a, b, 1.0), 1.0
+            return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
 
-    def diff(self, a, b):
-        return self._obj_diff(a, b)
+    def diff(self, a, b, fp=None):
+        if self.options.load:
+            a = self.options.loader(a)
+            b = self.options.loader(b)
+
+        d, s = self._obj_diff(a, b)
+
+        if self.options.marshal:
+            d = self.marshal(d)
+
+        if self.options.dump:
+            return self.options.dumper(d, fp)
+        else:
+            return d
+
+    def similarity(self, a, b):
+        if self.options.load:
+            a = self.options.loader(a)
+            b = self.options.loader(b)
+
+        d, s = self._obj_diff(a, b)
+
+        return s
 
     def _unescape(self, x):
         if isinstance(x, string_types):
@@ -383,31 +417,12 @@ class JsonDiffer(object):
             return self._escape(d)
 
 
-default_dumper = JsonDumper()
-
-default_loader = JsonLoader()
-
-
-def diff(a, b, syntax='compact', differ=JsonDiffer, load=False, dump=False, marshal=False, loader=default_loader, dumper=default_dumper):
-
-    if load:
-        a = loader(a)
-        b = loader(b)
-
-    d, s = differ(syntax=syntax).diff(a, b)
-
-    if dump or marshal:
-        d = differ.marshal(d)
-
-    if dump:
-        return dumper(d, None if dump is True else dump)
-    else:
-        return d
+def diff(a, b, fp=None, cls=JsonDiffer, **kwargs):
+    return cls(**kwargs).diff(a, b, fp)
 
 
-def similarity(a, b, differ=JsonDiffer):
-    d, s = differ().diff(a, b)
-    return s
+def similarity(a, b, cls=JsonDiffer, **kwargs):
+    return cls(**kwargs).similarity(a, b)
 
 
 __all__ = [
