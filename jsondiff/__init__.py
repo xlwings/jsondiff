@@ -27,9 +27,9 @@ class JsonDumper(object):
 
     def __call__(self, obj, dest=None):
         if dest is None:
-            return json.dumps(obj, **self.dump_args)
+            return json.dumps(obj, **self.kwargs)
         else:
-            return json.dump(obj, dest, **self.dump_args)
+            return json.dump(obj, dest, **self.kwargs)
 
 
 class JsonLoader(object):
@@ -38,16 +38,177 @@ class JsonLoader(object):
 
     def __call__(self, src):
         if isinstance(src, string_types):
-            return json.loads(src, **self.load_args)
+            return json.loads(src, **self.kwargs)
         else:
-            return json.load(src, **self.load_args)
+            return json.load(src, **self.kwargs)
+
+
+class JsonDiffSyntax(object):
+    def emit_set_diff(self, a, b, s, added, removed):
+        raise NotImplementedError()
+
+    def emit_list_diff(self, a, b, s, inserted, changed, deleted):
+        raise NotImplementedError()
+
+    def emit_dict_diff(self, a, b, s, added, changed, removed):
+        raise NotImplementedError()
+
+    def emit_value_diff(self, a, b, s):
+        raise NotImplementedError()
+
+
+class CompactJsonDiffSyntax(object):
+    def emit_set_diff(self, a, b, s, added, removed):
+        if s == 0.0 or len(removed) == len(a):
+            return b
+        else:
+            d = {}
+            if removed:
+                d[discard] = removed
+            if added:
+                d[add] = added
+            return d
+
+    def emit_list_diff(self, a, b, s, inserted, changed, deleted):
+        if s == 0.0:
+            return b
+        elif s == 1.0:
+            return {}
+        else:
+            d = changed
+            if inserted:
+                d[insert] = inserted
+            if deleted:
+                d[delete] = deleted
+            return d
+
+    def emit_dict_diff(self, a, b, s, added, changed, removed):
+        if s == 0.0:
+            return {replace: b}
+        elif s == 1.0:
+            return {}
+        else:
+            changed.update(added)
+            if removed:
+                changed[delete] = list(removed.keys())
+            return changed
+
+    def emit_value_diff(self, a, b, s):
+        if s == 1.0:
+            return {}
+        else:
+            return b
+
+
+class ExplicitJsonDiffSyntax(object):
+    def emit_set_diff(self, a, b, s, added, removed):
+        if s == 0.0 or len(removed) == len(a):
+            return b
+        else:
+            d = {}
+            if removed:
+                d[discard] = removed
+            if added:
+                d[add] = added
+            return d
+
+    def emit_list_diff(self, a, b, s, inserted, changed, deleted):
+        if s == 0.0:
+            return b
+        elif s == 1.0:
+            return {}
+        else:
+            d = changed
+            if inserted:
+                d[insert] = inserted
+            if deleted:
+                d[delete] = deleted
+            return d
+
+    def emit_dict_diff(self, a, b, s, added, changed, removed):
+        if s == 0.0:
+            return b
+        elif s == 1.0:
+            return {}
+        else:
+            d = {}
+            if added:
+                d[insert] = added
+            if changed:
+                d[update] = changed
+            if removed:
+                d[delete] = removed
+            return d
+
+    def emit_value_diff(self, a, b, s):
+        if s == 1.0:
+            return {}
+        else:
+            return b
+
+
+class SymmetricJsonDiffSyntax(object):
+    def emit_set_diff(self, a, b, s, added, removed):
+        if s == 0.0 or len(removed) == len(a):
+            return {left: a, right: b}
+        else:
+            d = {}
+            if added:
+                d[right] = added
+            if removed:
+                d[left] = removed
+            return d
+
+    def emit_list_diff(self, a, b, s, inserted, changed, deleted):
+        if s == 0.0:
+            return b
+        elif s == 1.0:
+            return {}
+        else:
+            d = changed
+            if inserted:
+                d[insert] = inserted
+            if deleted:
+                d[delete] = deleted
+            return d
+
+    def emit_dict_diff(self, a, b, s, added, changed, removed):
+        if s == 0.0:
+            return {left: a, right: b}
+        elif s == 1.0:
+            return {}
+        else:
+            d = {}
+            if added:
+                d[right] = added
+            if changed:
+                d[update] = changed
+            if removed:
+                d[left] = removed
+            return d
+
+    def emit_value_diff(self, a, b, s):
+        if s == 1.0:
+            return {}
+        else:
+            return {left: a, right: b}
+
+
+builtin_syntaxes = {
+    'compact': CompactJsonDiffSyntax(),
+    'symmetric': SymmetricJsonDiffSyntax(),
+    'explicit': ExplicitJsonDiffSyntax()
+}
 
 
 class JsonDiffer(object):
 
-    def __init__(self):
+    def __init__(self, syntax='compact'):
+        if isinstance(syntax, string_types):
+            syntax = builtin_syntaxes[syntax]
+        self._syntax = syntax
         self._symbol_map = {
-            "$" + symbol.label: symbol
+            symbol.label: symbol
             for symbol in (add, discard, insert, delete, update)
         }
 
@@ -102,17 +263,7 @@ class JsonDiffer(object):
             s = 1.0
         else:
             s = tot_s / tot_n
-        if s == 0.0:
-            return Y, 0.0
-        elif s == 1.0:
-            return {}, 1.0
-        else:
-            d = changed
-            if inserted:
-                d[insert] = inserted
-            if deleted:
-                d[delete] = deleted
-            return d, s
+        return self._syntax.emit_list_diff(X, Y, s, inserted, changed, deleted), s
 
     def _set_diff(self, a, b):
         removed = a.difference(b)
@@ -141,28 +292,21 @@ class JsonDiffer(object):
                 break
         n_tot = len(a) + len(added)
         s = s_common / n_tot if n_tot != 0 else 1.0
-        if s == 0.0 or len(removed) == len(a):
-            return b, 0.0
-        else:
-            d = {}
-            if removed:
-                d[discard] = removed
-            if added:
-                d[add] = added
-            return d, s
+        return self._syntax.emit_set_diff(a, b, s, added, removed), s
 
     def _dict_diff(self, a, b):
-        removed = []
+        removed = {}
         nremoved = 0
         nadded = 0
         nmatched = 0
         smatched = 0.0
+        added = {}
         changed = {}
         for k, v in a.items():
             w = b.get(k, missing)
             if w is missing:
                 nremoved += 1
-                removed.append(k)
+                removed[k] = v
             else:
                 nmatched += 1
                 d, s = self._obj_diff(v, w)
@@ -172,22 +316,14 @@ class JsonDiffer(object):
         for k, v in b.items():
             if k not in a:
                 nadded += 1
-                changed[k] = v
+                added[k] = v
         n_tot = nremoved + nmatched + nadded
         s = smatched / n_tot if n_tot != 0 else 1.0
-        if s == 0.0:
-            return {replace: b}, 0.0
-        elif s == 1.0:
-            return {}, 1.0
-        else:
-            d = changed
-            if removed:
-                d[delete] = removed
-            return d, s
+        return self._syntax.emit_dict_diff(a, b, s, added, changed, removed), s
 
     def _obj_diff(self, a, b):
         if a is b:
-            return {}, 1.0
+            return self._syntax.emit_value_diff(a, b, 1.0), 1.0
         if type(a) is dict and type(b) is dict:
             return self._dict_diff(a, b)
         elif isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
@@ -195,9 +331,9 @@ class JsonDiffer(object):
         elif isinstance(a, set) and isinstance(b, set):
             return self._set_diff(a, b)
         elif a != b:
-            return b, 0.0
+            return self._syntax.emit_value_diff(a, b, 0.0), 0.0
         else:
-            return {}, 1.0
+            return self._syntax.emit_value_diff(a, b, 1.0), 1.0
 
     def diff(self, a, b):
         return self._obj_diff(a, b)
@@ -273,6 +409,7 @@ def diff(a, b, differ=default_differ, load=False, dump=False, marshal=False, loa
 def similarity(a, b, differ=default_differ):
     d, s = differ.diff(a, b)
     return s
+
 
 __all__ = [
     "similarity",

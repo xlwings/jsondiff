@@ -14,6 +14,8 @@ update = Symbol('update')
 add = Symbol('add')
 discard = Symbol('discard')
 replace = Symbol('replace')
+left = Symbol('left')
+right = Symbol('right')
 
 __all__ = [
     'missing',
@@ -23,5 +25,7 @@ __all__ = [
     'update',
     'add',
     'discard',
-    'replace'
+    'replace',
+    'left',
+    'right'
 ]

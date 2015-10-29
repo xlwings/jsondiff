@@ -22,5 +22,5 @@ do("diff({'a': [0, {'b': 4}, 1]}, {'a': [0, {'c': 5}, 1]})", "...but similarity 
 
 do("diff({'a', 'b', 'c'}, {'a', 'c', 'd'})", "Special handling of sets")
 
-do("print diff('[\"a\", \"b\", \"c\"]', '[\"a\", \"c\", \"d\"]', parse=True, dump=True, indent=2)", "Parse and dump JSON")
+do("print diff('[\"a\", \"b\", \"c\"]', '[\"a\", \"c\", \"d\"]', load=True, dump=True)", "Load and dump JSON")
 
