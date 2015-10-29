@@ -191,7 +191,7 @@ class SymmetricJsonDiffSyntax(object):
         if s == 1.0:
             return {}
         else:
-            return {left: a, right: b}
+            return [a, b]
 
 
 builtin_syntaxes = {
@@ -383,19 +383,18 @@ class JsonDiffer(object):
             return self._escape(d)
 
 
-default_differ = JsonDiffer()
-
 default_dumper = JsonDumper()
 
 default_loader = JsonLoader()
 
 
-def diff(a, b, differ=default_differ, load=False, dump=False, marshal=False, loader=default_loader, dumper=default_dumper):
+def diff(a, b, syntax='compact', differ=JsonDiffer, load=False, dump=False, marshal=False, loader=default_loader, dumper=default_dumper):
+
     if load:
         a = loader(a)
         b = loader(b)
 
-    d, s = differ.diff(a, b)
+    d, s = differ(syntax=syntax).diff(a, b)
 
     if dump or marshal:
         d = differ.marshal(d)
@@ -406,16 +405,15 @@ def diff(a, b, differ=default_differ, load=False, dump=False, marshal=False, loa
         return d
 
 
-def similarity(a, b, differ=default_differ):
-    d, s = differ.diff(a, b)
+def similarity(a, b, differ=JsonDiffer):
+    d, s = differ().diff(a, b)
     return s
 
 
 __all__ = [
     "similarity",
     "diff",
-    "dump",
-    "dumps",
-    "load",
-    "loads"
+    "JsonDiffer",
+    "JsonDumper",
+    "JsonLoader",
 ]
