@@ -2,6 +2,24 @@ import unittest
 
 from jsondiff import diff, replace, add, discard, insert, delete, update
 
+from .utils import generate_random_json, perturbate_json
+
+
+def randomize(n, scenario_generator, seed=12038728732):
+    def decorator(test):
+        def randomized_test(self):
+            from random import Random
+            rng = Random(seed)
+            for i in range(n):
+                scenario = scenario_generator(self, rng)
+                try:
+                    test(self, scenario)
+                except Exception as e:
+                    import sys
+                    raise type(e), type(e)(e.message + ' with scenario %r' % (scenario,)), sys.exc_info()[2]
+        return randomized_test
+    return decorator
+
 
 class JsonDiffTests(unittest.TestCase):
 
@@ -49,3 +67,35 @@ class JsonDiffTests(unittest.TestCase):
             {insert: [(2, 'b')], delete: [0, 4],  1: {'v': 20}},
             diff(['x', 'a', {'u': 10, 'v': 11}, 'c', 'x'], ['a', {'u': 10, 'v': 20}, 'b', 'c'])
         )
+
+    def generate_scenario(self, rng):
+        a = generate_random_json(rng, sets=True)
+        b = perturbate_json(a, rng, sets=True)
+        return a, b
+
+    def generate_scenario_no_sets(self, rng):
+        a = generate_random_json(rng, sets=False)
+        b = perturbate_json(a, rng, sets=False)
+        return a, b
+
+    @randomize(1000, generate_scenario_no_sets)
+    def test_dump(self, scenario):
+        a, b = scenario
+        diff(a, b, syntax='compact', dump=True)
+        diff(a, b, syntax='explicit', dump=True)
+        diff(a, b, syntax='symmetric', dump=True)
+
+    @randomize(1000, generate_scenario)
+    def test_compact_syntax(self, scenario):
+        a, b = scenario
+        d = diff(a, b, syntax='compact')
+
+    @randomize(1000, generate_scenario)
+    def test_explicit_syntax(self, scenario):
+        a, b = scenario
+        diff(a, b, syntax='explicit')
+
+    @randomize(1000, generate_scenario)
+    def test_symmetric_syntax(self, scenario):
+        a, b = scenario
+        diff(a, b, syntax='symmetric')
