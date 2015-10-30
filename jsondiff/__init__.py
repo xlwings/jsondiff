@@ -143,7 +143,7 @@ class ExplicitJsonDiffSyntax(object):
             if changed:
                 d[update] = changed
             if removed:
-                d[delete] = removed
+                d[delete] = list(removed.keys())
             return d
 
     def emit_value_diff(self, a, b, s):
@@ -160,9 +160,9 @@ class SymmetricJsonDiffSyntax(object):
         else:
             d = {}
             if added:
-                d[right] = added
+                d[insert] = added
             if removed:
-                d[left] = removed
+                d[delete] = removed
             return d
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
@@ -180,17 +180,15 @@ class SymmetricJsonDiffSyntax(object):
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
         if s == 0.0:
-            return {left: a, right: b}
+            return {insert: a, delete: b}
         elif s == 1.0:
             return {}
         else:
-            d = {}
+            d = changed
             if added:
-                d[right] = added
-            if changed:
-                d[update] = changed
+                d[insert] = added
             if removed:
-                d[left] = removed
+                d[delete] = removed
             return d
 
     def emit_value_diff(self, a, b, s):
