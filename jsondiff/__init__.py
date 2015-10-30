@@ -62,6 +62,12 @@ class JsonDiffSyntax(object):
     def emit_value_diff(self, a, b, s):
         raise NotImplementedError()
 
+    def apply(self, a, d):
+        raise NotImplementedError()
+
+    def unapply(self, a, d):
+        raise NotImplementedError()
+
 
 class CompactJsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
@@ -104,6 +110,43 @@ class CompactJsonDiffSyntax(object):
             return {}
         else:
             return b
+
+    def patch(self, a, d):
+        if isinstance(d, dict):
+            if not d:
+                return a
+            if replace in d:
+                return d[replace]
+            if isinstance(a, dict):
+                a = dict(a)
+                for k, v in d.items():
+                    if k is delete:
+                        for kdel in v:
+                            del a[kdel]
+                    else:
+                        av = a.get(k, missing)
+                        if av is missing:
+                            a[k] = v
+                        else:
+                            a[k] = self.patch(av, v)
+                return a
+            elif isinstance(a, (list, tuple)):
+                original_type = type(a)
+                a = list(a)
+                if delete in d:
+                    for pos in d[delete]:
+                        a.pop(pos)
+                for k, v in d.items():
+                    if k is not delete and k is not insert:
+                        k = int(k)
+                        a[k] = self.patch(a[k], v)
+                if insert in d:
+                    for pos, value in d[insert]:
+                        a.insert(pos, value)
+                if type(a) is not original_type:
+                    a = original_type(a)
+                return a
+        return d
 
 
 class ExplicitJsonDiffSyntax(object):
@@ -215,7 +258,7 @@ class JsonDiffer(object):
         self.options.syntax = builtin_syntaxes.get(syntax, syntax)
         self.options.load = load
         self.options.dump = dump
-        self.options.marshal = marshal or dump
+        self.options.marshal = marshal
         self.options.loader = loader
         self.options.dumper = dumper
         self._symbol_map = {
@@ -265,7 +308,7 @@ class JsonDiffer(object):
             if sign == 1:
                 inserted.append((pos, value))
             elif sign == -1:
-                deleted.append(pos)
+                deleted.insert(0, pos)
             elif sign == 0 and s < 1:
                 changed[pos] = value
             tot_s += s
@@ -353,7 +396,7 @@ class JsonDiffer(object):
 
         d, s = self._obj_diff(a, b)
 
-        if self.options.marshal:
+        if self.options.marshal or self.options.dump:
             d = self.marshal(d)
 
         if self.options.dump:
@@ -369,6 +412,34 @@ class JsonDiffer(object):
         d, s = self._obj_diff(a, b)
 
         return s
+
+    def patch(self, a, d, fp=None):
+        if self.options.load:
+            a = self.options.loader(a)
+            d = self.options.loader(d)
+
+        if self.options.marshal or self.options.load:
+            d = self.unmarshal(d)
+
+        b = self.options.syntax.patch(a, d)
+
+        if self.options.dump:
+            return self.options.dumper(b, fp)
+
+
+    def unapply(self, a, d, fp=None):
+        if self.options.load:
+            a = self.options.loader(a)
+            d = self.options.loader(d)
+
+        if self.options.marshal or self.options.load:
+            d = self.unmarshal(d)
+
+        b = self.options.syntax.apply(a, d)
+
+        if self.options.dump:
+            return self.options.dumper(b, fp)
+
 
     def _unescape(self, x):
         if isinstance(x, string_types):
@@ -417,6 +488,10 @@ class JsonDiffer(object):
 
 def diff(a, b, fp=None, cls=JsonDiffer, **kwargs):
     return cls(**kwargs).diff(a, b, fp)
+
+
+def patch(a, d, fp=None, cls=JsonDiffer, **kwargs):
+    return cls(**kwargs).patch(a, d, fp)
 
 
 def similarity(a, b, cls=JsonDiffer, **kwargs):

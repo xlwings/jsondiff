@@ -1,6 +1,6 @@
 import unittest
 
-from jsondiff import diff, replace, add, discard, insert, delete, update
+from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
 
 from .utils import generate_random_json, perturbate_json
 
@@ -16,7 +16,7 @@ def randomize(n, scenario_generator, seed=12038728732):
                     test(self, scenario)
                 except Exception as e:
                     import sys
-                    raise type(e), type(e)(e.message + ' with scenario %r' % (scenario,)), sys.exc_info()[2]
+                    raise type(e), type(e)('%s with scenario %r' % (e.message, scenario)), sys.exc_info()[2]
         return randomized_test
     return decorator
 
@@ -58,13 +58,13 @@ class JsonDiffTests(unittest.TestCase):
         self.assertEqual({discard: {4}}, diff({1, 2, 4}, {1, 2}))
 
         self.assertEqual({insert: [(1, 'b')]}, diff(['a', 'c'], ['a', 'b', 'c']))
-        self.assertEqual({insert: [(1, 'b')], delete: [0, 3]}, diff(['x', 'a', 'c', 'x'], ['a', 'b', 'c']))
+        self.assertEqual({insert: [(1, 'b')], delete: [3, 0]}, diff(['x', 'a', 'c', 'x'], ['a', 'b', 'c']))
         self.assertEqual(
-            {insert: [(2, 'b')], delete: [0, 4], 1: {'v': 20}},
+            {insert: [(2, 'b')], delete: [4, 0], 1: {'v': 20}},
             diff(['x', 'a', {'v': 11}, 'c', 'x'], ['a', {'v': 20}, 'b', 'c'])
         )
         self.assertEqual(
-            {insert: [(2, 'b')], delete: [0, 4],  1: {'v': 20}},
+            {insert: [(2, 'b')], delete: [4, 0],  1: {'v': 20}},
             diff(['x', 'a', {'u': 10, 'v': 11}, 'c', 'x'], ['a', {'u': 10, 'v': 20}, 'b', 'c'])
         )
 
@@ -88,14 +88,20 @@ class JsonDiffTests(unittest.TestCase):
     @randomize(1000, generate_scenario)
     def test_compact_syntax(self, scenario):
         a, b = scenario
-        d = diff(a, b, syntax='compact')
+        differ = JsonDiffer(syntax='compact')
+        d = differ.diff(a, b)
+        self.assertEqual(b, differ.patch(a, d))
 
     @randomize(1000, generate_scenario)
     def test_explicit_syntax(self, scenario):
         a, b = scenario
-        diff(a, b, syntax='explicit')
+        differ = JsonDiffer(syntax='explicit')
+        d = differ.diff(a, b)
+        # self.assertEqual(b, differ.patch(a, d))
 
     @randomize(1000, generate_scenario)
     def test_symmetric_syntax(self, scenario):
         a, b = scenario
-        diff(a, b, syntax='symmetric')
+        differ = JsonDiffer(syntax='symmetric')
+        d = differ.diff(a, b)
+        # self.assertEqual(b, differ.patch(a, d))
