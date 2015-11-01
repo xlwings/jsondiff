@@ -136,13 +136,13 @@ class CompactJsonDiffSyntax(object):
                 if delete in d:
                     for pos in d[delete]:
                         a.pop(pos)
+                if insert in d:
+                    for pos, value in d[insert]:
+                        a.insert(pos, value)
                 for k, v in d.items():
                     if k is not delete and k is not insert:
                         k = int(k)
                         a[k] = self.patch(a[k], v)
-                if insert in d:
-                    for pos, value in d[insert]:
-                        a.insert(pos, value)
                 if type(a) is not original_type:
                     a = original_type(a)
                 return a

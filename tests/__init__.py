@@ -4,21 +4,7 @@ from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDi
 
 from .utils import generate_random_json, perturbate_json
 
-
-def randomize(n, scenario_generator, seed=12038728732):
-    def decorator(test):
-        def randomized_test(self):
-            from random import Random
-            rng = Random(seed)
-            for i in range(n):
-                scenario = scenario_generator(self, rng)
-                try:
-                    test(self, scenario)
-                except Exception as e:
-                    import sys
-                    raise type(e), type(e)('%s with scenario %r' % (e.message, scenario)), sys.exc_info()[2]
-        return randomized_test
-    return decorator
+from nose_random import randomize
 
 
 class JsonDiffTests(unittest.TestCase):
