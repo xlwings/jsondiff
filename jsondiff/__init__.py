@@ -143,8 +143,17 @@ class CompactJsonDiffSyntax(object):
                     if k is not delete and k is not insert:
                         k = int(k)
                         a[k] = self.patch(a[k], v)
-                if type(a) is not original_type:
+                if original_type is not list:
                     a = original_type(a)
+                return a
+            elif isinstance(a, set):
+                a = set(a)
+                if discard in d:
+                    for x in d[discard]:
+                        a.discard(x)
+                if add in d:
+                    for x in d[add]:
+                        a.add(x)
                 return a
         return d
 
@@ -425,6 +434,8 @@ class JsonDiffer(object):
 
         if self.options.dump:
             return self.options.dumper(b, fp)
+        else:
+            return b
 
 
     def unapply(self, a, d, fp=None):
