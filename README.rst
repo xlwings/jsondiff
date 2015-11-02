@@ -1,6 +1,3 @@
-jsondiff
-========
-
 .. code-block:: python
 
     >>> from jsondiff import diff
