@@ -72,7 +72,7 @@ class JsonDiffSyntax(object):
 class CompactJsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
         if s == 0.0 or len(removed) == len(a):
-            return b
+            return {replace: b} if isinstance(b, dict) else b
         else:
             d = {}
             if removed:
@@ -83,7 +83,7 @@ class CompactJsonDiffSyntax(object):
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
         if s == 0.0:
-            return b
+            return {replace: b} if isinstance(b, dict) else b
         elif s == 1.0:
             return {}
         else:
@@ -96,7 +96,7 @@ class CompactJsonDiffSyntax(object):
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
         if s == 0.0:
-            return {replace: b}
+            return {replace: b} if isinstance(b, dict) else b
         elif s == 1.0:
             return {}
         else:
@@ -109,7 +109,7 @@ class CompactJsonDiffSyntax(object):
         if s == 1.0:
             return {}
         else:
-            return b
+            return {replace: b} if isinstance(b, dict) else b
 
     def patch(self, a, d):
         if isinstance(d, dict):
@@ -389,7 +389,9 @@ class JsonDiffer(object):
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
         if type(a) is dict and type(b) is dict:
             return self._dict_diff(a, b)
-        elif isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
+        elif isinstance(a, tuple) and isinstance(b, tuple):
+            return self._list_diff(a, b)
+        elif isinstance(a, list) and isinstance(b, list):
             return self._list_diff(a, b)
         elif isinstance(a, set) and isinstance(b, set):
             return self._set_diff(a, b)

@@ -2,7 +2,7 @@ import unittest
 
 from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
 
-from .utils import generate_random_json, perturbate_json
+from utils import generate_random_json, perturbate_json
 
 from nose_random import randomize
 
@@ -31,7 +31,7 @@ class JsonDiffTests(unittest.TestCase):
         self.assertEqual({3, 4}, diff({1, 2}, {3, 4}))
         self.assertEqual({replace: {'c': 3, 'd': 4}}, diff({'a': 1, 'b': 2}, {'c': 3, 'd': 4}))
 
-        self.assertEqual({'c': 3, 'd': 4}, diff([1, 2], {'c': 3, 'd': 4}))
+        self.assertEqual({replace: {'c': 3, 'd': 4}}, diff([1, 2], {'c': 3, 'd': 4}))
         self.assertEqual(123, diff({'a': 1, 'b': 2}, 123))
 
         self.assertEqual({delete: ['b']}, diff({'a': 1, 'b': 2}, {'a': 1}))
