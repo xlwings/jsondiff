@@ -62,10 +62,10 @@ class JsonDiffSyntax(object):
     def emit_value_diff(self, a, b, s):
         raise NotImplementedError()
 
-    def apply(self, a, d):
+    def patch(self, a, d):
         raise NotImplementedError()
 
-    def unapply(self, a, d):
+    def unpatch(self, a, d):
         raise NotImplementedError()
 
 
@@ -297,48 +297,48 @@ class SymmetricJsonDiffSyntax(object):
 
     def unpatch(self, b, d):
         if isinstance(d, list):
-            _, b = d
-            return b
+            a, _ = d
+            return a
         elif isinstance(d, dict):
             if not d:
-                return a
-            if isinstance(a, dict):
-                a = dict(a)
+                return b
+            if isinstance(b, dict):
+                b = dict(b)
                 for k, v in d.items():
                     if k is delete:
-                        for kdel, _ in v.items():
-                            del a[kdel]
+                        for kk, vv in v.items():
+                            b[kk] = vv
                     elif k is insert:
                         for kk, vv in v.items():
-                            a[kk] = vv
+                            del b[kk]
                     else:
-                        a[k] = self.patch(a[k], v)
-                return a
-            elif isinstance(a, (list, tuple)):
-                original_type = type(a)
-                a = list(a)
-                if delete in d:
-                    for pos, value in d[delete]:
-                        a.pop(pos)
-                if insert in d:
-                    for pos, value in d[insert]:
-                        a.insert(pos, value)
+                        b[k] = self.unpatch(b[k], v)
+                return b
+            elif isinstance(b, (list, tuple)):
+                original_type = type(b)
+                b = list(b)
                 for k, v in d.items():
                     if k is not delete and k is not insert:
                         k = int(k)
-                        a[k] = self.patch(a[k], v)
+                        b[k] = self.unpatch(b[k], v)
+                if insert in d:
+                    for pos, value in reversed(d[insert]):
+                        b.pop(pos)
+                if delete in d:
+                    for pos, value in reversed(d[delete]):
+                        b.insert(pos, value)
                 if original_type is not list:
-                    a = original_type(a)
-                return a
-            elif isinstance(a, set):
-                a = set(a)
+                    b = original_type(b)
+                return b
+            elif isinstance(b, set):
+                b = set(b)
                 if discard in d:
                     for x in d[discard]:
-                        a.discard(x)
+                        b.add(x)
                 if add in d:
                     for x in d[add]:
-                        a.add(x)
-                return a
+                        b.discard(x)
+                return b
         raise Exception("Invalid symmetric diff")
 
 
