@@ -91,7 +91,7 @@ class CompactJsonDiffSyntax(object):
             if inserted:
                 d[insert] = inserted
             if deleted:
-                d[delete] = deleted
+                d[delete] = [pos for pos, value in deleted]
             return d
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
@@ -180,7 +180,7 @@ class ExplicitJsonDiffSyntax(object):
             if inserted:
                 d[insert] = inserted
             if deleted:
-                d[delete] = deleted
+                d[delete] = [pos for pos, value in deleted]
             return d
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
@@ -208,18 +208,18 @@ class ExplicitJsonDiffSyntax(object):
 class SymmetricJsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
         if s == 0.0 or len(removed) == len(a):
-            return {left: a, right: b}
+            return [a, b]
         else:
             d = {}
             if added:
-                d[insert] = added
+                d[add] = added
             if removed:
-                d[delete] = removed
+                d[discard] = removed
             return d
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
         if s == 0.0:
-            return b
+            return [a, b]
         elif s == 1.0:
             return {}
         else:
@@ -232,7 +232,7 @@ class SymmetricJsonDiffSyntax(object):
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
         if s == 0.0:
-            return {insert: a, delete: b}
+            return [a, b]
         elif s == 1.0:
             return {}
         else:
@@ -248,6 +248,98 @@ class SymmetricJsonDiffSyntax(object):
             return {}
         else:
             return [a, b]
+
+    def patch(self, a, d):
+        if isinstance(d, list):
+            _, b = d
+            return b
+        elif isinstance(d, dict):
+            if not d:
+                return a
+            if isinstance(a, dict):
+                a = dict(a)
+                for k, v in d.items():
+                    if k is delete:
+                        for kdel, _ in v.items():
+                            del a[kdel]
+                    elif k is insert:
+                        for kk, vv in v.items():
+                            a[kk] = vv
+                    else:
+                        a[k] = self.patch(a[k], v)
+                return a
+            elif isinstance(a, (list, tuple)):
+                original_type = type(a)
+                a = list(a)
+                if delete in d:
+                    for pos, value in d[delete]:
+                        a.pop(pos)
+                if insert in d:
+                    for pos, value in d[insert]:
+                        a.insert(pos, value)
+                for k, v in d.items():
+                    if k is not delete and k is not insert:
+                        k = int(k)
+                        a[k] = self.patch(a[k], v)
+                if original_type is not list:
+                    a = original_type(a)
+                return a
+            elif isinstance(a, set):
+                a = set(a)
+                if discard in d:
+                    for x in d[discard]:
+                        a.discard(x)
+                if add in d:
+                    for x in d[add]:
+                        a.add(x)
+                return a
+        raise Exception("Invalid symmetric diff")
+
+    def unpatch(self, b, d):
+        if isinstance(d, list):
+            _, b = d
+            return b
+        elif isinstance(d, dict):
+            if not d:
+                return a
+            if isinstance(a, dict):
+                a = dict(a)
+                for k, v in d.items():
+                    if k is delete:
+                        for kdel, _ in v.items():
+                            del a[kdel]
+                    elif k is insert:
+                        for kk, vv in v.items():
+                            a[kk] = vv
+                    else:
+                        a[k] = self.patch(a[k], v)
+                return a
+            elif isinstance(a, (list, tuple)):
+                original_type = type(a)
+                a = list(a)
+                if delete in d:
+                    for pos, value in d[delete]:
+                        a.pop(pos)
+                if insert in d:
+                    for pos, value in d[insert]:
+                        a.insert(pos, value)
+                for k, v in d.items():
+                    if k is not delete and k is not insert:
+                        k = int(k)
+                        a[k] = self.patch(a[k], v)
+                if original_type is not list:
+                    a = original_type(a)
+                return a
+            elif isinstance(a, set):
+                a = set(a)
+                if discard in d:
+                    for x in d[discard]:
+                        a.discard(x)
+                if add in d:
+                    for x in d[add]:
+                        a.add(x)
+                return a
+        raise Exception("Invalid symmetric diff")
 
 
 builtin_syntaxes = {
@@ -317,7 +409,7 @@ class JsonDiffer(object):
             if sign == 1:
                 inserted.append((pos, value))
             elif sign == -1:
-                deleted.insert(0, pos)
+                deleted.insert(0, (pos, value))
             elif sign == 0 and s < 1:
                 changed[pos] = value
             tot_s += s
@@ -439,19 +531,20 @@ class JsonDiffer(object):
         else:
             return b
 
-
-    def unapply(self, a, d, fp=None):
+    def unpatch(self, b, d, fp=None):
         if self.options.load:
-            a = self.options.loader(a)
+            b = self.options.loader(b)
             d = self.options.loader(d)
 
         if self.options.marshal or self.options.load:
             d = self.unmarshal(d)
 
-        b = self.options.syntax.apply(a, d)
+        a = self.options.syntax.unpatch(b, d)
 
         if self.options.dump:
-            return self.options.dumper(b, fp)
+            return self.options.dumper(a, fp)
+        else:
+            return a
 
 
     def _unescape(self, x):

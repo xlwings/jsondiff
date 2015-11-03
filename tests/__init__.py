@@ -90,4 +90,5 @@ class JsonDiffTests(unittest.TestCase):
         a, b = scenario
         differ = JsonDiffer(syntax='symmetric')
         d = differ.diff(a, b)
-        # self.assertEqual(b, differ.patch(a, d))
+        self.assertEqual(b, differ.patch(a, d))
+        self.assertEqual(a, differ.unpatch(b, d))
