@@ -1,6 +1,3 @@
-jsondiff
-========
-
 .. code-block:: python
 
     >>> from jsondiff import diff
@@ -36,3 +33,8 @@ jsondiff
     # Load and dump JSON
     >>> print diff('["a", "b", "c"]', '["a", "c", "d"]', load=True, dump=True)
     {"$delete": [1], "$insert": [[2, "d"]]}
+
+Installation
+============
+
+``pip install jsondiff``
