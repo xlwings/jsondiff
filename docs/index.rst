@@ -1,16 +1,20 @@
-.. jsondiff documentation master file, created by
-   sphinx-quickstart on Fri Nov 13 17:39:49 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+jsondiff - Diff JSON and JSON-like structures in Python
+=======================================================
 
-Welcome to jsondiff's documentation!
-====================================
+jsondiff is an MIT-licensed Python library which lets you compare, diff and patch JSON and JSON-like structures in
+Python. It has special support for
+
+* multiple and custom-defined diff syntaxes
+* Python sets
+* similarity-based list comparison
+
+.. note:: jsondiff is currently in an early stage.
+   The API might change in backward incompatible ways.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
-
 
 
 Indices and tables
