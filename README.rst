@@ -37,4 +37,4 @@
 Installation
 ============
 
-``pip install jsondiff``
+

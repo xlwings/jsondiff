@@ -1,5 +1,5 @@
-jsondiff - Diff JSON and JSON-like structures in Python
-=======================================================
+jsondiff
+========
 
 jsondiff is an MIT-licensed Python library which lets you compare, diff and patch JSON and JSON-like structures in
 Python. It has special support for
@@ -15,6 +15,8 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
+
+   basic_use
 
 
 Indices and tables
