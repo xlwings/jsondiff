@@ -431,7 +431,8 @@ class JsonDiffer(object):
                 for x in removed
                 for y in added
             ),
-            reverse=True
+            reverse=True,
+            key=lambda x: x[0]
         )
         r2 = set(removed)
         a2 = set(added)
