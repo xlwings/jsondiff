@@ -2,7 +2,7 @@ import unittest
 
 from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
 
-from utils import generate_random_json, perturbate_json
+from .utils import generate_random_json, perturbate_json
 
 from nose_random import randomize
 
