@@ -54,6 +54,20 @@ class JsonDiffTests(unittest.TestCase):
             diff(['x', 'a', {'u': 10, 'v': 11}, 'c', 'x'], ['a', {'u': 10, 'v': 20}, 'b', 'c'])
         )
 
+    def test_marshal(self):
+        differ = JsonDiffer()
+
+        d = {
+            delete: 3,
+            '$delete': 4,
+            insert: 4,
+            '$$something': 1
+        }
+
+        dm = differ.marshal(d)
+
+        self.assertEqual(d, differ.unmarshal(dm))
+
     def generate_scenario(self, rng):
         a = generate_random_json(rng, sets=True)
         b = perturbate_json(a, rng, sets=True)
@@ -77,6 +91,9 @@ class JsonDiffTests(unittest.TestCase):
         differ = JsonDiffer(syntax='compact')
         d = differ.diff(a, b)
         self.assertEqual(b, differ.patch(a, d))
+        dm = differ.marshal(d)
+        self.assertEqual(d, differ.unmarshal(dm))
+
 
     @randomize(1000, generate_scenario)
     def test_explicit_syntax(self, scenario):
@@ -84,6 +101,8 @@ class JsonDiffTests(unittest.TestCase):
         differ = JsonDiffer(syntax='explicit')
         d = differ.diff(a, b)
         # self.assertEqual(b, differ.patch(a, d))
+        dm = differ.marshal(d)
+        self.assertEqual(d, differ.unmarshal(dm))
 
     @randomize(1000, generate_scenario)
     def test_symmetric_syntax(self, scenario):
@@ -92,3 +111,5 @@ class JsonDiffTests(unittest.TestCase):
         d = differ.diff(a, b)
         self.assertEqual(b, differ.patch(a, d))
         self.assertEqual(a, differ.unpatch(b, d))
+        dm = differ.marshal(d)
+        self.assertEqual(d, differ.unmarshal(dm))
