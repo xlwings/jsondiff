@@ -364,7 +364,7 @@ class JsonDiffer(object):
         self.options.dumper = dumper
         self._symbol_map = {
             '$' + symbol.label: symbol
-            for symbol in (add, discard, insert, delete, update)
+            for symbol in _all_symbols_
         }
 
     def _list_diff_0(self, C, X, Y, i, j):
@@ -564,10 +564,10 @@ class JsonDiffer(object):
                 for k, v in d.items()
             }
         elif isinstance(d, (list, tuple)):
-            return [
-                self.marshal(x)
+            return type(d)(
+                self.unmarshal(x)
                 for x in d
-            ]
+            )
         else:
             return self._unescape(d)
 
@@ -585,10 +585,10 @@ class JsonDiffer(object):
                 for k, v in d.items()
             }
         elif isinstance(d, (list, tuple)):
-            return [
+            return type(d)(
                 self.marshal(x)
                 for x in d
-            ]
+            )
         else:
             return self._escape(d)
 

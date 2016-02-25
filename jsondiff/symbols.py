@@ -20,6 +20,19 @@ replace = Symbol('replace')
 left = Symbol('left')
 right = Symbol('right')
 
+_all_symbols_ = [
+    missing,
+    identical,
+    delete,
+    insert,
+    update,
+    add,
+    discard,
+    replace,
+    left,
+    right
+]
+
 __all__ = [
     'missing',
     'identical',
@@ -30,5 +43,6 @@ __all__ = [
     'discard',
     'replace',
     'left',
-    'right'
+    'right',
+    '_all_symbols_'
 ]
