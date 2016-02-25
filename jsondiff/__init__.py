@@ -363,7 +363,7 @@ class JsonDiffer(object):
         self.options.loader = loader
         self.options.dumper = dumper
         self._symbol_map = {
-            symbol.label: symbol
+            '$' + symbol.label: symbol
             for symbol in (add, discard, insert, delete, update)
         }
 
