@@ -1,3 +1,16 @@
+jsondiff
+========
+
+Diff JSON and JSON-like structures in Python.
+
+Installation
+------------
+
+``pip install jsondiff``
+
+Quickstart
+----------
+
 .. code-block:: python
 
     >>> from jsondiff import diff
@@ -34,8 +47,30 @@
     >>> print diff('["a", "b", "c"]', '["a", "c", "d"]', load=True, dump=True)
     {"$delete": [1], "$insert": [[2, "d"]]}
 
-Installation
-============
 
-``pip install jsondiff``
+Command Line Client
+-------------------
 
+Usage:
+
+.. code-block:: bash
+
+    jsondiff [-h] [-p] [-s SYNTAX] [-i INDENT] first second
+
+    positional arguments:
+      first
+      second
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -p, --patch
+      -s SYNTAX, --syntax SYNTAX
+      -i INDENT, --indent INDENT
+
+Examples:
+
+.. code-block:: bash
+
+    $ jsondiff a.txt b.txt -i 2
+
+    $ jsondiff a.txt b.txt -i 2 -s symmetric
