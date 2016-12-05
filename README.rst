@@ -71,6 +71,6 @@ Examples:
 
 .. code-block:: bash
 
-    $ jsondiff a.txt b.txt -i 2
+    $ jsondiff a.json b.json -i 2
 
-    $ jsondiff a.txt b.txt -i 2 -s symmetric
+    $ jsondiff a.json b.json -i 2 -s symmetric
