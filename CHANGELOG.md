@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.1.1 (Mar, 26th 2016)
+
+Exclude tests from installation
+
 ## v1.1.0 (Dec, 5th 2016)
 
 Added command line client
