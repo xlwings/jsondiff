@@ -480,7 +480,7 @@ class JsonDiffer(object):
     def _obj_diff(self, a, b):
         if a is b:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
-        if type(a) is dict and type(b) is dict:
+        if isinstance(a, dict) and isinstance(b, dict):
             return self._dict_diff(a, b)
         elif isinstance(a, tuple) and isinstance(b, tuple):
             return self._list_diff(a, b)
