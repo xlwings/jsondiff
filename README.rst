@@ -51,9 +51,7 @@ Quickstart
 Command Line Client
 -------------------
 
-Usage:
-
-.. code-block:: bash
+Usage::
 
     jsondiff [-h] [-p] [-s SYNTAX] [-i INDENT] first second
 
