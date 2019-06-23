@@ -1,6 +1,7 @@
 import argparse
 import jsondiff
 import json
+import warnings
 import sys
 
 def main():
@@ -35,6 +36,9 @@ def main():
 
             json.dump(x, sys.stdout, indent=args.indent)
 
+def main_deprecated():
+    warnings.warn("jsondiff is deprecated. Use jdiff instead.", DeprecationWarning)
+    main()
 
 if __name__ == '__main__':
     main()

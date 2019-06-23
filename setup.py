@@ -21,7 +21,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'jsondiff=jsondiff.cli:main'
+            'jsondiff=jsondiff.cli:main_deprecated',
+            'jdiff=jsondiff.cli:main'
         ]
     }
 )
