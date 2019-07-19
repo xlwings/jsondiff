@@ -1,3 +1,4 @@
+import sys
 import unittest
 
 from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
@@ -113,3 +114,17 @@ class JsonDiffTests(unittest.TestCase):
         self.assertEqual(a, differ.unpatch(b, d))
         dm = differ.marshal(d)
         self.assertEqual(d, differ.unmarshal(dm))
+
+    def test_long_arrays(self):
+        size = 100
+        a = [{'a': i, 'b': 2 * i} for i in range(1, size)]
+        b = [{'a': i, 'b': 3 * i} for i in range(1, size)]
+        r = sys.getrecursionlimit()
+        sys.setrecursionlimit(size - 1)
+
+        try:
+            diff(a, b)
+        except RecursionError:
+            self.fail('cannot diff long arrays')
+        finally:
+            sys.setrecursionlimit(r)
