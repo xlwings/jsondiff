@@ -367,24 +367,25 @@ class JsonDiffer(object):
             for symbol in _all_symbols_
         }
 
-    def _list_diff_0(self, C, X, Y, i, j):
-        if i > 0 and j > 0:
-            d, s = self._obj_diff(X[i-1], Y[j-1])
-            if s > 0 and C[i][j] == C[i-1][j-1] + s:
-                for annotation in self._list_diff_0(C, X, Y, i-1, j-1):
-                    yield annotation
-                yield (0, d, j-1, s)
-                return
-        if j > 0 and (i == 0 or C[i][j-1] >= C[i-1][j]):
-            for annotation in self._list_diff_0(C, X, Y, i, j-1):
-                yield annotation
-            yield (1, Y[j-1], j-1, 0.0)
-            return
-        if i > 0 and (j == 0 or C[i][j-1] < C[i-1][j]):
-            for annotation in self._list_diff_0(C, X, Y, i-1, j):
-                yield annotation
-            yield (-1, X[i-1], i-1, 0.0)
-            return
+    def _list_diff_0(self, C, X, Y):
+        i, j = len(X), len(Y)
+        r = []
+        while True:
+            if i > 0 and j > 0:
+                d, s = self._obj_diff(X[i-1], Y[j-1])
+                if s > 0 and C[i][j] == C[i-1][j-1] + s:
+                    r.append((0, d, j-1, s))
+                    i, j = i - 1, j - 1
+                    continue
+            if j > 0 and (i == 0 or C[i][j-1] >= C[i-1][j]):
+                r.append((1, Y[j-1], j-1, 0.0))
+                j = j - 1
+                continue
+            if i > 0 and (j == 0 or C[i][j-1] < C[i-1][j]):
+                r.append((-1, X[i-1], i-1, 0.0))
+                i = i - 1
+                continue
+            return reversed(r)
 
     def _list_diff(self, X, Y):
         # LCS
@@ -405,7 +406,8 @@ class JsonDiffer(object):
         deleted = []
         changed = {}
         tot_s = 0.0
-        for sign, value, pos, s in self._list_diff_0(C, X, Y, len(X), len(Y)):
+
+        for sign, value, pos, s in self._list_diff_0(C, X, Y):
             if sign == 1:
                 inserted.append((pos, value))
             elif sign == -1:
