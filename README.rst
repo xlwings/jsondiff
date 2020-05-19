@@ -2,6 +2,7 @@ jsondiff
 ========
 
 This package is currently unmaintained and looking for a new maintainer! Email me if you are interested, thanks!
+----------------------------------------------------------------------------------------------------------------
 
 Diff JSON and JSON-like structures in Python.
 
