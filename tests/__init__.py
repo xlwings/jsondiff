@@ -128,3 +128,39 @@ class JsonDiffTests(unittest.TestCase):
             self.fail('cannot diff long arrays')
         finally:
             sys.setrecursionlimit(r)
+
+    def test_remove_all_items_from_list(self):
+        """
+        Remove the final item in a list and confirm that the resulting diff using explicit syntax
+        shows the deleted items.
+        :return:
+        """
+        a_list = ['x', 'y', 'z']
+        z_list = ['z']
+
+        self.assertEqual({'$delete': [1, 0]}, diff(a_list, z_list, syntax='compact', marshal=True))
+        self.assertEqual([], diff(a_list, [], syntax='compact', marshal=True))
+
+        self.assertEqual({'$delete': [1, 0]}, diff(a_list, z_list, syntax='explicit', marshal=True))
+        self.assertEqual({'$delete': [2, 1, 0]}, diff(a_list, [], syntax='explicit', marshal=True))
+
+        self.assertEqual({'$delete': [(1, 'y'), (0, 'x')]}, diff(a_list, z_list, syntax='symmetric', marshal=True))
+        self.assertEqual({'$delete': [(2, 'z'), (1, 'y'), (0, 'x')]}, diff(a_list, [], syntax='symmetric', marshal=True))
+
+    def test_remove_all_items_from_dict(self):
+        """
+        Remove the final item in a dict and confirm that the resulting diff using explicit syntax
+        shows the deleted items.
+        :return:
+            """
+        b_dict = {'a_key': 1, 'b_key': 2, 'c_key': 3}
+        c_dict = {'c_key': 3}
+
+        self.assertEqual({'$delete': ['a_key', 'b_key']}, diff(b_dict, c_dict, syntax='compact', marshal=True))
+        self.assertEqual({'$replace': {}}, diff(b_dict, {}, syntax='compact', marshal=True))
+
+        self.assertEqual({'$delete': ['a_key', 'b_key']}, diff(b_dict, c_dict, syntax='explicit', marshal=True))
+        self.assertEqual({'$delete': ['a_key', 'b_key', 'c_key']}, diff(b_dict, {}, syntax='explicit', marshal=True))
+
+        self.assertEqual({'$delete': {'a_key': 1, 'b_key': 2}}, diff(b_dict, c_dict, syntax='symmetric', marshal=True))
+        self.assertEqual({'$delete': {'a_key': 1, 'b_key': 2, 'c_key': 3}}, diff(b_dict, {}, syntax='symmetric', marshal=True))

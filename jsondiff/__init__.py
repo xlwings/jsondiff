@@ -1,4 +1,4 @@
-__version__ = '1.2.0'
+__version__ = '1.2.1'
 
 import sys
 import json
@@ -84,7 +84,7 @@ class CompactJsonDiffSyntax(object):
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
         if s == 0.0:
             return {replace: b} if isinstance(b, dict) else b
-        elif s == 1.0:
+        elif s == 1.0 and not (inserted or changed or deleted):
             return {}
         else:
             d = changed
@@ -97,7 +97,7 @@ class CompactJsonDiffSyntax(object):
     def emit_dict_diff(self, a, b, s, added, changed, removed):
         if s == 0.0:
             return {replace: b} if isinstance(b, dict) else b
-        elif s == 1.0:
+        elif s == 1.0 and not (added or changed or removed):
             return {}
         else:
             changed.update(added)
@@ -171,9 +171,9 @@ class ExplicitJsonDiffSyntax(object):
             return d
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
-        if s == 0.0:
+        if s == 0.0 and not (inserted or changed or deleted):
             return b
-        elif s == 1.0:
+        elif s == 1.0 and not (inserted or changed or deleted):
             return {}
         else:
             d = changed
@@ -184,9 +184,9 @@ class ExplicitJsonDiffSyntax(object):
             return d
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
-        if s == 0.0:
+        if s == 0.0 and not (added or changed or removed):
             return b
-        elif s == 1.0:
+        elif s == 1.0 and not (added or changed or removed):
             return {}
         else:
             d = {}
@@ -218,9 +218,9 @@ class SymmetricJsonDiffSyntax(object):
             return d
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
-        if s == 0.0:
+        if s == 0.0 and not (inserted or changed or deleted):
             return [a, b]
-        elif s == 1.0:
+        elif s == 1.0 and not (inserted or changed or deleted):
             return {}
         else:
             d = changed
@@ -231,9 +231,9 @@ class SymmetricJsonDiffSyntax(object):
             return d
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
-        if s == 0.0:
+        if s == 0.0 and not (added or changed or removed):
             return [a, b]
-        elif s == 1.0:
+        elif s == 1.0 and not (added or changed or removed):
             return {}
         else:
             d = changed
