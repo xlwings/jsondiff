@@ -53,7 +53,7 @@ Command Line Client
 
 Usage::
 
-    jsondiff [-h] [-p] [-s SYNTAX] [-i INDENT] first second
+    jdiff [-h] [-p] [-s SYNTAX] [-i INDENT] first second
 
     positional arguments:
       first
@@ -69,6 +69,6 @@ Examples:
 
 .. code-block:: bash
 
-    $ jsondiff a.json b.json -i 2
+    $ jdiff a.json b.json -i 2
 
-    $ jsondiff a.json b.json -i 2 -s symmetric
+    $ jdiff a.json b.json -i 2 -s symmetric
