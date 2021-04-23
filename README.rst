@@ -47,6 +47,12 @@ Quickstart
     >>> print diff('["a", "b", "c"]', '["a", "c", "d"]', load=True, dump=True)
     {"$delete": [1], "$insert": [[2, "d"]]}
 
+    # Note: the entity returned by `diff` keynames are not able accessed
+    # if you want to access the diff as a dictionary, pass the `marshal=True` option like so: 
+    >>> difference = diff({"a": 1, "b": 2}, {"b": 3, "c": 4}, marshal=True) # {"$insert": {"c": 4}, "$update": {"b: 3}, "$delete": ["a"]}
+    >>> dictionary_diff = difference.get('$update') 
+    {"b": 3}
+    
 
 Command Line Client
 -------------------
