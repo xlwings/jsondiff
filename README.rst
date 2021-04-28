@@ -13,6 +13,7 @@ Quickstart
 
 .. code-block:: python
 
+    >>> import jsondiff as jd
     >>> from jsondiff import diff
 
     >>> diff({'a': 1, 'b': 2}, {'b': 3, 'c': 4})
@@ -47,6 +48,17 @@ Quickstart
     >>> print diff('["a", "b", "c"]', '["a", "c", "d"]', load=True, dump=True)
     {"$delete": [1], "$insert": [[2, "d"]]}
 
+    # NOTE: Default keys in the result are objects, not strings!
+    >>> d = diff({'a': 1, 'delete': 2}, {'b': 3, 'delete': 4})
+    >>> d
+    {'delete': 4, 'b': 3, delete: ['a']}
+    >>> d[jd.delete]
+    ['a']
+    >>> d['delete']
+    4
+    # Alternatively, you can use marshal=True to get back strings with a leading $
+    >>> diff({'a': 1, 'delete': 2}, {'b': 3, 'delete': 4}, marshal=True)
+    {'delete': 4, 'b': 3, '$delete': ['a']}
 
 Command Line Client
 -------------------
