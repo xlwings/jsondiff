@@ -7,7 +7,7 @@ from .symbols import *
 from .symbols import Symbol
 
 # rules
-# - keys and strings which start with $ are escaped to $$
+# - keys and strings which start with $ (or specified escape_str) are escaped to $$ (or escape_str * 2)
 # - when source is dict and diff is a dict -> patch
 # - when source is list and diff is a list patch dict -> patch
 # - else -> replacement
@@ -354,7 +354,8 @@ class JsonDiffer(object):
     class Options(object):
         pass
 
-    def __init__(self, syntax='compact', load=False, dump=False, marshal=False, loader=default_loader, dumper=default_dumper):
+    def __init__(self, syntax='compact', load=False, dump=False, marshal=False,
+                 loader=default_loader, dumper=default_dumper, escape_str='$'):
         self.options = JsonDiffer.Options()
         self.options.syntax = builtin_syntaxes.get(syntax, syntax)
         self.options.load = load
@@ -362,8 +363,9 @@ class JsonDiffer(object):
         self.options.marshal = marshal
         self.options.loader = loader
         self.options.dumper = dumper
+        self.options.escape_str = escape_str
         self._symbol_map = {
-            '$' + symbol.label: symbol
+            escape_str + symbol.label: symbol
             for symbol in _all_symbols_
         }
 
@@ -555,7 +557,7 @@ class JsonDiffer(object):
             sym = self._symbol_map.get(x, None)
             if sym is not None:
                 return sym
-            if x.startswith('$'):
+            if x.startswith(self.options.escape_str):
                 return x[1:]
         return x
 
@@ -575,9 +577,9 @@ class JsonDiffer(object):
 
     def _escape(self, o):
         if type(o) is Symbol:
-            return "$" + o.label
-        if isinstance(o, string_types) and o.startswith('$'):
-            return "$" + o
+            return self.options.escape_str + o.label
+        if isinstance(o, string_types) and o.startswith(self.options.escape_str):
+            return self.options.escape_str + o
         return o
 
     def marshal(self, d):
