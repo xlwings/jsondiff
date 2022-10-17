@@ -5,7 +5,19 @@ from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDi
 
 from .utils import generate_random_json, perturbate_json
 
-from nose_random import randomize
+from hypothesis import given, settings, strategies
+
+
+def generate_scenario(rng):
+    a = generate_random_json(rng, sets=True)
+    b = perturbate_json(a, rng, sets=True)
+    return a, b
+
+
+def generate_scenario_no_sets(rng):
+    a = generate_random_json(rng, sets=False)
+    b = perturbate_json(a, rng, sets=False)
+    return a, b
 
 
 class JsonDiffTests(unittest.TestCase):
@@ -69,24 +81,16 @@ class JsonDiffTests(unittest.TestCase):
 
         self.assertEqual(d, differ.unmarshal(dm))
 
-    def generate_scenario(self, rng):
-        a = generate_random_json(rng, sets=True)
-        b = perturbate_json(a, rng, sets=True)
-        return a, b
-
-    def generate_scenario_no_sets(self, rng):
-        a = generate_random_json(rng, sets=False)
-        b = perturbate_json(a, rng, sets=False)
-        return a, b
-
-    @randomize(1000, generate_scenario_no_sets)
+    @given(strategies.randoms().map(generate_scenario_no_sets))
+    @settings(max_examples=1000)
     def test_dump(self, scenario):
         a, b = scenario
         diff(a, b, syntax='compact', dump=True)
         diff(a, b, syntax='explicit', dump=True)
         diff(a, b, syntax='symmetric', dump=True)
 
-    @randomize(1000, generate_scenario)
+    @given(strategies.randoms().map(generate_scenario))
+    @settings(max_examples=1000)
     def test_compact_syntax(self, scenario):
         a, b = scenario
         differ = JsonDiffer(syntax='compact')
@@ -96,7 +100,8 @@ class JsonDiffTests(unittest.TestCase):
         self.assertEqual(d, differ.unmarshal(dm))
 
 
-    @randomize(1000, generate_scenario)
+    @given(strategies.randoms().map(generate_scenario))
+    @settings(max_examples=1000)
     def test_explicit_syntax(self, scenario):
         a, b = scenario
         differ = JsonDiffer(syntax='explicit')
@@ -105,7 +110,8 @@ class JsonDiffTests(unittest.TestCase):
         dm = differ.marshal(d)
         self.assertEqual(d, differ.unmarshal(dm))
 
-    @randomize(1000, generate_scenario)
+    @given(strategies.randoms().map(generate_scenario))
+    @settings(max_examples=1000)
     def test_symmetric_syntax(self, scenario):
         a, b = scenario
         differ = JsonDiffer(syntax='symmetric')
