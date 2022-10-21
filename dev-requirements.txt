@@ -1,2 +1,2 @@
-nose
-git+https://github.com/ZoomerAnalytics/nose-random.git
+hypothesis
+pytest
