@@ -9,6 +9,9 @@ class Symbol(object):
     def __str__(self):
         return "$" + self.label
 
+    def __eq__(self, other):
+        return self.label == other.label
+
 missing = Symbol('missing')
 identical = Symbol('identical')
 delete = Symbol('delete')
