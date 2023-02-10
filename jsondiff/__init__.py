@@ -1,7 +1,9 @@
-__version__ = '2.0.0'
+__version__ = '2.0.1'
 
-import sys
+import decimal
 import json
+import sys
+from decimal import Decimal
 
 from .symbols import *
 from .symbols import Symbol
@@ -71,7 +73,7 @@ class JsonDiffSyntax(object):
 
 class CompactJsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
-        if s == 0.0 or len(removed) == len(a):
+        if s == Decimal(0.0) or len(removed) == len(a):
             return {replace: b} if isinstance(b, dict) else b
         else:
             d = {}
@@ -82,9 +84,9 @@ class CompactJsonDiffSyntax(object):
             return d
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
-        if s == 0.0:
+        if s == Decimal(0.0):
             return {replace: b} if isinstance(b, dict) else b
-        elif s == 1.0:
+        elif s == Decimal(1.0):
             return {}
         else:
             d = changed
@@ -95,9 +97,9 @@ class CompactJsonDiffSyntax(object):
             return d
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
-        if s == 0.0:
+        if s == Decimal(0.0):
             return {replace: b} if isinstance(b, dict) else b
-        elif s == 1.0:
+        elif s == Decimal(1.0):
             return {}
         else:
             changed.update(added)
@@ -106,7 +108,7 @@ class CompactJsonDiffSyntax(object):
             return changed
 
     def emit_value_diff(self, a, b, s):
-        if s == 1.0:
+        if s == Decimal(1.0):
             return {}
         else:
             return {replace: b} if isinstance(b, dict) else b
@@ -160,7 +162,7 @@ class CompactJsonDiffSyntax(object):
 
 class ExplicitJsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
-        if s == 0.0 or len(removed) == len(a):
+        if s == Decimal(0.0) or len(removed) == len(a):
             return b
         else:
             d = {}
@@ -171,9 +173,9 @@ class ExplicitJsonDiffSyntax(object):
             return d
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
-        if s == 0.0:
+        if s == Decimal(0.0):
             return b
-        elif s == 1.0:
+        elif s == Decimal(1.0):
             return {}
         else:
             d = changed
@@ -184,9 +186,9 @@ class ExplicitJsonDiffSyntax(object):
             return d
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
-        if s == 0.0:
+        if s == Decimal(0.0):
             return b
-        elif s == 1.0:
+        elif s == Decimal(1.0):
             return {}
         else:
             d = {}
@@ -199,7 +201,7 @@ class ExplicitJsonDiffSyntax(object):
             return d
 
     def emit_value_diff(self, a, b, s):
-        if s == 1.0:
+        if s == Decimal(1.0):
             return {}
         else:
             return b
@@ -207,7 +209,7 @@ class ExplicitJsonDiffSyntax(object):
 
 class SymmetricJsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
-        if s == 0.0 or len(removed) == len(a):
+        if s == Decimal(0.0) or len(removed) == len(a):
             return [a, b]
         else:
             d = {}
@@ -218,9 +220,9 @@ class SymmetricJsonDiffSyntax(object):
             return d
 
     def emit_list_diff(self, a, b, s, inserted, changed, deleted):
-        if s == 0.0:
+        if s == Decimal(0.0):
             return [a, b]
-        elif s == 1.0:
+        elif s == Decimal(1.0):
             return {}
         else:
             d = changed
@@ -231,9 +233,9 @@ class SymmetricJsonDiffSyntax(object):
             return d
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
-        if s == 0.0:
+        if s == Decimal(0.0):
             return [a, b]
-        elif s == 1.0:
+        elif s == Decimal(1.0):
             return {}
         else:
             d = changed
@@ -244,7 +246,7 @@ class SymmetricJsonDiffSyntax(object):
             return d
 
     def emit_value_diff(self, a, b, s):
-        if s == 1.0:
+        if s == Decimal(1.0):
             return {}
         else:
             return [a, b]
@@ -380,11 +382,11 @@ class JsonDiffer(object):
                     i, j = i - 1, j - 1
                     continue
             if j > 0 and (i == 0 or C[i][j-1] >= C[i-1][j]):
-                r.append((1, Y[j-1], j-1, 0.0))
+                r.append((1, Y[j-1], j-1, Decimal(0.0)))
                 j = j - 1
                 continue
             if i > 0 and (j == 0 or C[i][j-1] < C[i-1][j]):
-                r.append((-1, X[i-1], i-1, 0.0))
+                r.append((-1, X[i-1], i-1, Decimal(0.0)))
                 i = i - 1
                 continue
             return reversed(r)
@@ -407,8 +409,7 @@ class JsonDiffer(object):
         inserted = []
         deleted = []
         changed = {}
-        tot_s = 0.0
-
+        tot_s = Decimal(0.0)
         for sign, value, pos, s in self._list_diff_0(C, X, Y):
             if sign == 1:
                 inserted.append((pos, value))
@@ -419,7 +420,7 @@ class JsonDiffer(object):
             tot_s += s
         tot_n = len(X) + len(inserted)
         if tot_n == 0:
-            s = 1.0
+            s = Decimal(1.0)
         else:
             s = tot_s / tot_n
         return self.options.syntax.emit_list_diff(X, Y, s, inserted, changed, deleted), s
@@ -428,7 +429,7 @@ class JsonDiffer(object):
         removed = a.difference(b)
         added = b.difference(a)
         if not removed and not added:
-            return {}, 1.0
+            return {}, Decimal(1.0)
         ranking = sorted(
             (
                 (self._obj_diff(x, y)[1], x, y)
@@ -441,7 +442,7 @@ class JsonDiffer(object):
         r2 = set(removed)
         a2 = set(added)
         n_common = len(a) - len(removed)
-        s_common = float(n_common)
+        s_common = Decimal(n_common)
         for s, x, y in ranking:
             if x in r2 and y in a2:
                 r2.discard(x)
@@ -451,7 +452,7 @@ class JsonDiffer(object):
             if not r2 or not a2:
                 break
         n_tot = len(a) + len(added)
-        s = s_common / n_tot if n_tot != 0 else 1.0
+        s = s_common / n_tot if n_tot != 0 else Decimal(1.0)
         return self.options.syntax.emit_set_diff(a, b, s, added, removed), s
 
     def _dict_diff(self, a, b):
@@ -459,7 +460,7 @@ class JsonDiffer(object):
         nremoved = 0
         nadded = 0
         nmatched = 0
-        smatched = 0.0
+        smatched = Decimal(0.0)
         added = {}
         changed = {}
         for k, v in a.items():
@@ -470,20 +471,20 @@ class JsonDiffer(object):
             else:
                 nmatched += 1
                 d, s = self._obj_diff(v, w)
-                if s < 1.0:
+                if s < Decimal(1.0):
                     changed[k] = d
-                smatched += 0.5 + 0.5 * s
+                smatched += Decimal(0.5) + Decimal(0.5) * s
         for k, v in b.items():
             if k not in a:
                 nadded += 1
                 added[k] = v
         n_tot = nremoved + nmatched + nadded
-        s = smatched / n_tot if n_tot != 0 else 1.0
+        s = smatched / n_tot if n_tot != 0 else Decimal(1.0)
         return self.options.syntax.emit_dict_diff(a, b, s, added, changed, removed), s
 
     def _obj_diff(self, a, b):
         if a is b:
-            return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
+            return self.options.syntax.emit_value_diff(a, b, Decimal(1.0)), Decimal(1.0)
         if isinstance(a, dict) and isinstance(b, dict):
             return self._dict_diff(a, b)
         elif isinstance(a, tuple) and isinstance(b, tuple):
@@ -493,9 +494,9 @@ class JsonDiffer(object):
         elif isinstance(a, set) and isinstance(b, set):
             return self._set_diff(a, b)
         elif a != b:
-            return self.options.syntax.emit_value_diff(a, b, 0.0), 0.0
+            return self.options.syntax.emit_value_diff(a, b, Decimal(0.0)), Decimal(0.0)
         else:
-            return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
+            return self.options.syntax.emit_value_diff(a, b, Decimal(1.0)), Decimal(1.0)
 
     def diff(self, a, b, fp=None):
         if self.options.load:
@@ -607,6 +608,11 @@ def patch(a, d, fp=None, cls=JsonDiffer, **kwargs):
 
 def similarity(a, b, cls=JsonDiffer, **kwargs):
     return cls(**kwargs).similarity(a, b)
+
+
+# Increase decimal precision so highly nested jsons different very slightly are not incorrectly flagged as same.
+# https://github.com/xlwings/jsondiff/issues/56
+decimal.getcontext().prec = 50
 
 
 __all__ = [
