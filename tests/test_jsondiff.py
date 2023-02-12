@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
+from jsondiff import diff, replace, add, discard, insert, delete, similarity, JsonDiffer
 
 from .utils import generate_random_json, perturbate_json
 
@@ -146,3 +146,7 @@ class JsonDiffTests(unittest.TestCase):
         self.assertNotEqual({}, diff(d1, d2))
         self.assertEqual(d2, diff(d1, d2))
         self.assertEqual(d1, diff(d2, d1))
+
+        self.assertEqual(1.0, similarity(d1, d2))
+        similarity_fraction = similarity(d1, d2, return_similarity_as_float=False)
+        self.assertEqual(1, similarity_fraction.denominator - similarity_fraction.numerator)

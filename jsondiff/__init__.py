@@ -355,7 +355,8 @@ class JsonDiffer(object):
         pass
 
     def __init__(self, syntax='compact', load=False, dump=False, marshal=False,
-                 loader=default_loader, dumper=default_dumper, escape_str='$'):
+                 loader=default_loader, dumper=default_dumper, escape_str='$',
+                 return_similarity_as_float=True):
         self.options = JsonDiffer.Options()
         self.options.syntax = builtin_syntaxes.get(syntax, syntax)
         self.options.load = load
@@ -364,6 +365,7 @@ class JsonDiffer(object):
         self.options.loader = loader
         self.options.dumper = dumper
         self.options.escape_str = escape_str
+        self.options.return_similarity_as_float = return_similarity_as_float
         self._symbol_map = {
             escape_str + symbol.label: symbol
             for symbol in _all_symbols_
@@ -518,7 +520,7 @@ class JsonDiffer(object):
 
         d, s = self._obj_diff(a, b)
 
-        return s
+        return float(s) if self.options.return_similarity_as_float else s
 
     def patch(self, a, d, fp=None):
         if self.options.load:
@@ -549,7 +551,6 @@ class JsonDiffer(object):
             return self.options.dumper(a, fp)
         else:
             return a
-
 
     def _unescape(self, x):
         if isinstance(x, string_types):
