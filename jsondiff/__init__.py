@@ -608,9 +608,6 @@ def similarity(a, b, cls=JsonDiffer, **kwargs):
     return cls(**kwargs).similarity(a, b)
 
 
-# Increase decimal precision so highly nested jsons different very slightly are not incorrectly flagged as same.
-# https://github.com/xlwings/jsondiff/issues/56
-
 __all__ = [
     "similarity",
     "diff",
