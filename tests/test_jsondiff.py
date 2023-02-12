@@ -138,7 +138,7 @@ class JsonDiffTests(unittest.TestCase):
         d1 = {'a': 1}
         d2 = {'a': 2}
         sys.setrecursionlimit(100000)
-        # make dicts nested at 100 depth, differing only at the leaf-node (inner-most) level.
+        # make dicts nested at 10000 depth, differing only at the leaf-node (inner-most) level.
         for _ in range(10000):
             d1 = {'a': d1}
             d2 = {'a': d2}
