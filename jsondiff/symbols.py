@@ -19,6 +19,10 @@ class Symbol(object):
     def __hash__(self) -> int:
         return hash(self.label)
 
+    def __hash__(self):
+        return hash(id(self))
+
+
 missing = Symbol('missing')
 identical = Symbol('identical')
 delete = Symbol('delete')

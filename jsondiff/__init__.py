@@ -342,10 +342,34 @@ class SymmetricJsonDiffSyntax(object):
         raise Exception("Invalid symmetric diff")
 
 
+class IntuitiveJsonDiffSyntax(CompactJsonDiffSyntax):
+    """
+    Compare to the CompactJsonDiffSyntax, I will not compare the difference in list, because { delete : [1] } is not intuitive, instead, I will pop the later list value.
+    """
+
+    def emit_dict_diff(self, a, b, s, added, changed, removed):
+        if s == 1.0:
+            return {}
+        else:
+            changed.update(added)
+            if removed:
+                changed[delete] = list(removed.keys())
+            return changed
+
+    def emit_list_diff(self, a, b, s, inserted, changed, deleted):
+        if s == 0.0:
+            return b
+        elif s == 1.0:
+            return {}
+        else:
+            return b
+
+
 builtin_syntaxes = {
     'compact': CompactJsonDiffSyntax(),
     'symmetric': SymmetricJsonDiffSyntax(),
-    'explicit': ExplicitJsonDiffSyntax()
+    'explicit': ExplicitJsonDiffSyntax(),
+    'intuitive': IntuitiveJsonDiffSyntax(),
 }
 
 
