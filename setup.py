@@ -16,8 +16,6 @@ setup(
     keywords=['json', 'diff', 'diffing', 'difference', 'patch', 'delta', 'dict', 'LCS'],
     classifiers=[
         'License :: OSI Approved :: MIT License',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
     ],
     entry_points={
