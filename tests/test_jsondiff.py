@@ -1,5 +1,6 @@
 import sys
 import unittest
+import pytest
 
 from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
 
@@ -134,3 +135,30 @@ class JsonDiffTests(unittest.TestCase):
             self.fail('cannot diff long arrays')
         finally:
             sys.setrecursionlimit(r)
+
+
+@pytest.mark.parametrize(
+    ("a", "b", "syntax", "expected"),
+    [
+        pytest.param([], [{"a": True}], "explicit", {insert: [(0, {"a": True})]},
+                     id="issue59_"),
+        pytest.param([{"a": True}], [], "explicit", {delete: [0]},
+                     id="issue59_"),
+        pytest.param([], [{"a": True}], "compact", [{"a": True}],
+                     id="issue59_"),
+        pytest.param([{"a": True}], [], "compact", [],
+                     id="issue59_"),
+        pytest.param([], [{"a": True}], "symmetric", {insert: [(0, {"a": True})]},
+                     id="issue59_"),
+        pytest.param([{"a": True}], [], "symmetric", {delete: [(0, {"a": True})]},
+                     id="issue59_"),
+        pytest.param({1: 2}, {5: 3}, "symmetric", {delete: {1: 2}, insert: {5: 3}},
+                     id="issue36_"),
+        pytest.param({1: 2}, {5: 3}, "compact", {replace: {5: 3}},
+                     id="issue36_"),
+    ],
+)
+class TestSpecificIssue:
+    def test_issue(self,  a, b, syntax, expected):
+        actual = diff(a, b, syntax=syntax)
+        assert actual == expected
