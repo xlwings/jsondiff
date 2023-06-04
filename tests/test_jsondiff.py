@@ -1,7 +1,7 @@
 import sys
 import unittest
 
-from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
+from jsondiff import diff, replace, add, discard, insert, delete, similarity, JsonDiffer
 
 from .utils import generate_random_json, perturbate_json
 
@@ -63,7 +63,7 @@ class JsonDiffTests(unittest.TestCase):
             diff(['x', 'a', {'v': 11}, 'c', 'x'], ['a', {'v': 20}, 'b', 'c'])
         )
         self.assertEqual(
-            {insert: [(2, 'b')], delete: [4, 0],  1: {'v': 20}},
+            {insert: [(2, 'b')], delete: [4, 0], 1: {'v': 20}},
             diff(['x', 'a', {'u': 10, 'v': 11}, 'c', 'x'], ['a', {'u': 10, 'v': 20}, 'b', 'c'])
         )
 
@@ -99,7 +99,6 @@ class JsonDiffTests(unittest.TestCase):
         dm = differ.marshal(d)
         self.assertEqual(d, differ.unmarshal(dm))
 
-
     @given(strategies.randoms().map(generate_scenario))
     @settings(max_examples=1000)
     def test_explicit_syntax(self, scenario):
@@ -134,3 +133,20 @@ class JsonDiffTests(unittest.TestCase):
             self.fail('cannot diff long arrays')
         finally:
             sys.setrecursionlimit(r)
+
+    def test_deeply_nested_dict_diff(self):
+        d1 = {'a': 1}
+        d2 = {'a': 2}
+        sys.setrecursionlimit(100000)
+        # make dicts nested at 10000 depth, differing only at the leaf-node (inner-most) level.
+        for _ in range(10000):
+            d1 = {'a': d1}
+            d2 = {'a': d2}
+
+        self.assertNotEqual({}, diff(d1, d2))
+        self.assertEqual(d2, diff(d1, d2))
+        self.assertEqual(d1, diff(d2, d1))
+
+        self.assertEqual(1.0, similarity(d1, d2))
+        similarity_fraction = similarity(d1, d2, return_similarity_as_float=False)
+        self.assertEqual(1, similarity_fraction.denominator - similarity_fraction.numerator)
