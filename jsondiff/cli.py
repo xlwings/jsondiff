@@ -10,8 +10,10 @@ def main():
     parser.add_argument("first")
     parser.add_argument("second")
     parser.add_argument("-p", "--patch", action="store_true", default=False)
-    parser.add_argument("-s", "--syntax", action="store", type=str, default="compact")
-    parser.add_argument("-i", "--indent", action="store", type=int, default=None)
+    parser.add_argument("-s", "--syntax", choices=(jsondiff.builtin_syntaxes.keys()), default="compact",
+                        help="Diff syntax controls how differences are rendered")
+    parser.add_argument("-i", "--indent", action="store", type=int, default=None,
+                        help="Number of spaces to indent. None is compact, no indentation.")
 
     args = parser.parse_args()
 
