@@ -2,6 +2,7 @@ __version__ = '2.0.0'
 
 import sys
 import json
+import yaml
 
 from .symbols import *
 from .symbols import Symbol
@@ -35,6 +36,20 @@ class JsonDumper(object):
 default_dumper = JsonDumper()
 
 
+class YamlDumper(object):
+    """Write object as YAML string"""
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+
+    def __call__(self,  obj, dest=None):
+        """Format obj as a YAML string and optionally write to dest
+        :param obj: dict to dump
+        :param dest: file-like object
+        :return: str
+        """
+        return yaml.dump(obj, dest, **self.kwargs)
+
 class JsonLoader(object):
     def __init__(self, **kwargs):
         self.kwargs = kwargs
@@ -48,6 +63,16 @@ class JsonLoader(object):
 
 default_loader = JsonLoader()
 
+
+class YamlLoader(object):
+    """Load YAML data from file-like object or string"""
+
+    def __call__(self, src):
+        """Parse and return YAML data
+        :param src: str|file-like source
+        :return: dict parsed data
+        """
+        return yaml.safe_load(src)
 
 class JsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
