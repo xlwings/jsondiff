@@ -666,4 +666,6 @@ __all__ = [
     "JsonDiffer",
     "JsonDumper",
     "JsonLoader",
+    "YamlDumper",
+    "YamlLoader"
 ]
