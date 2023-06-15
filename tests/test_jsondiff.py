@@ -173,6 +173,8 @@ class TestSpecificIssue:
         actual = diff(a, b, syntax=syntax)
         assert actual == expected
 
+
+class TestIntuitive(unittest.TestCase):
     def test_intuitive_syntax(self):
         a = {"poplist": [1, 2, 3]}
         b = {}
