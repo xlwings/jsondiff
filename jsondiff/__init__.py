@@ -342,7 +342,7 @@ class SymmetricJsonDiffSyntax(object):
         raise Exception("Invalid symmetric diff")
 
 
-class IntuitiveJsonDiffSyntax(CompactJsonDiffSyntax):
+class RightOnlyJsonDiffSyntax(CompactJsonDiffSyntax):
     """
     Compare to the CompactJsonDiffSyntax, I will not compare the difference in list, because { delete : [1] } is not intuitive, instead, I will pop the later list value.
     """
@@ -369,7 +369,7 @@ builtin_syntaxes = {
     'compact': CompactJsonDiffSyntax(),
     'symmetric': SymmetricJsonDiffSyntax(),
     'explicit': ExplicitJsonDiffSyntax(),
-    'intuitive': IntuitiveJsonDiffSyntax(),
+    'rightonly': RightOnlyJsonDiffSyntax(),
 }
 
 

@@ -174,12 +174,12 @@ class TestSpecificIssue:
         assert actual == expected
 
 
-class TestIntuitive(unittest.TestCase):
-    def test_intuitive_syntax(self):
+class TestRightOnly(unittest.TestCase):
+    def test_right_only_syntax(self):
         a = {"poplist": [1, 2, 3]}
         b = {}
         self.assertEqual(
-            diff(a, b, syntax="intuitive", marshal=True),
+            diff(a, b, syntax="rightonly", marshal=True),
             {
                 "$delete": ["poplist"],
             }
@@ -187,7 +187,7 @@ class TestIntuitive(unittest.TestCase):
         a = {1: 2, 2: 3, 'list': [1, 2, 3], 'samelist': [1, 2, 3], "poplist": [1, 2, 3]}
         b = {1: 2, 2: 4, 'list': [1, 3], 'samelist': [1, 2, 3]}
         self.assertEqual(
-            diff(a, b, syntax="intuitive", marshal=True),
+            diff(a, b, syntax="rightonly", marshal=True),
             {
                 2: 4,
                 "list": [1, 3],
@@ -195,7 +195,7 @@ class TestIntuitive(unittest.TestCase):
             }
         )
         self.assertEqual(
-            diff(a, b, syntax="intuitive"),
+            diff(a, b, syntax="rightonly"),
             {
                 2: 4,
                 "list": [1, 3],
@@ -205,6 +205,6 @@ class TestIntuitive(unittest.TestCase):
         c = [1, 2, 3]
         d = [4, 5, 6]
         self.assertEqual(
-            diff(c, d, syntax="intuitive", marshal=True),
+            diff(c, d, syntax="rightonly", marshal=True),
             [4, 5, 6],
         )
