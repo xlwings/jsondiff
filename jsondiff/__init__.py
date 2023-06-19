@@ -344,7 +344,9 @@ class SymmetricJsonDiffSyntax(object):
 
 class RightOnlyJsonDiffSyntax(CompactJsonDiffSyntax):
     """
-    Compare to the CompactJsonDiffSyntax, I will not compare the difference in list, because { delete : [1] } is not intuitive, instead, I will pop the later list value.
+    Compare to the CompactJsonDiffSyntax, I will not compare the difference in list,
+    because in some senario we only care about the right value (in most cases means latest value).
+    Instead, I will pop the later list value.
     """
 
     def emit_dict_diff(self, a, b, s, added, changed, removed):
