@@ -40,6 +40,9 @@ Quickstart
     >>> diff({'a': 1, 'b': 2}, {'b': 3, 'c': 4}, syntax='symmetric')
     {insert: {'c': 4}, 'b': [2, 3], delete: {'a': 1}}
 
+    >>> diff({'list': [1, 2, 3], "poplist": [1, 2, 3]}, {'list': [1, 3]}, syntax="rightonly")
+    {"list": [1, 3], delete: ["poplist"]}
+
     # Special handling of sets
     >>> diff({'a', 'b', 'c'}, {'a', 'c', 'd'})
     {discard: set(['b']), add: set(['d'])}

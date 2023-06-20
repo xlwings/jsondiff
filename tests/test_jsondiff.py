@@ -1,3 +1,4 @@
+import logging
 import sys
 import unittest
 import pytest
@@ -7,6 +8,15 @@ from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDi
 from .utils import generate_random_json, perturbate_json
 
 from hypothesis import given, settings, strategies
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=(
+        '%(asctime)s %(pathname)s[line:%(lineno)d] %(levelname)s %(message)s'
+    ),
+)
+logging.getLogger("jsondiff").setLevel(logging.DEBUG)
 
 
 def generate_scenario(rng):
@@ -162,3 +172,39 @@ class TestSpecificIssue:
     def test_issue(self,  a, b, syntax, expected):
         actual = diff(a, b, syntax=syntax)
         assert actual == expected
+
+
+class TestRightOnly(unittest.TestCase):
+    def test_right_only_syntax(self):
+        a = {"poplist": [1, 2, 3]}
+        b = {}
+        self.assertEqual(
+            diff(a, b, syntax="rightonly", marshal=True),
+            {
+                "$delete": ["poplist"],
+            }
+        )
+        a = {1: 2, 2: 3, 'list': [1, 2, 3], 'samelist': [1, 2, 3], "poplist": [1, 2, 3]}
+        b = {1: 2, 2: 4, 'list': [1, 3], 'samelist': [1, 2, 3]}
+        self.assertEqual(
+            diff(a, b, syntax="rightonly", marshal=True),
+            {
+                2: 4,
+                "list": [1, 3],
+                "$delete": ["poplist"],
+            }
+        )
+        self.assertEqual(
+            diff(a, b, syntax="rightonly"),
+            {
+                2: 4,
+                "list": [1, 3],
+                delete: ["poplist"],
+            }
+        )
+        c = [1, 2, 3]
+        d = [4, 5, 6]
+        self.assertEqual(
+            diff(c, d, syntax="rightonly", marshal=True),
+            [4, 5, 6],
+        )
