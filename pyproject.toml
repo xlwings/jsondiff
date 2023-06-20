@@ -17,6 +17,9 @@ classifiers = [
     'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3',
 ]
+dependencies = [
+    "pyyaml"
+]
 
 [project.optional-dependencies]
 test = [

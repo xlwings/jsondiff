@@ -68,17 +68,22 @@ Command Line Client
 
 Usage::
 
-    jdiff [-h] [-p] [-s SYNTAX] [-i INDENT] first second
+    jdiff [-h] [-p] [-s {compact,symmetric,explicit}] [-i INDENT] [-f {json,yaml}] first second
 
-    positional arguments:
-      first
-      second
+positional arguments:
+  first
+  second
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      -p, --patch
-      -s SYNTAX, --syntax SYNTAX
-      -i INDENT, --indent INDENT
+optional arguments:
+  -h, --help            show this help message and exit
+  -p, --patch
+  -s {compact,symmetric,explicit}, --syntax {compact,symmetric,explicit}
+                        Diff syntax controls how differences are rendered (default: compact)
+  -i INDENT, --indent INDENT
+                        Number of spaces to indent. None is compact, no indentation. (default: None)
+  -f {json,yaml}, --format {json,yaml}
+                        Specify file format for input and dump (default: json)
+
 
 Examples:
 
@@ -87,3 +92,5 @@ Examples:
     $ jdiff a.json b.json -i 2
 
     $ jdiff a.json b.json -i 2 -s symmetric
+
+    $ jdiff a.yaml b.yaml -f yaml -s symmetric

@@ -1,8 +1,11 @@
+import io
 import logging
+import os.path
 import sys
 import unittest
 import pytest
 
+import jsondiff
 from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
 
 from .utils import generate_random_json, perturbate_json
@@ -208,3 +211,110 @@ class TestRightOnly(unittest.TestCase):
             diff(c, d, syntax="rightonly", marshal=True),
             [4, 5, 6],
         )
+
+class TestLoaders(unittest.TestCase):
+
+    here = os.path.dirname(__file__)
+    data_dir = os.path.join(here, "data")
+
+    def test_json_string_loader(self):
+        json_str = '{"hello": "world", "data": [1,2,3]}'
+        expected = {"hello": "world", "data": [1, 2, 3]}
+        loader = jsondiff.JsonLoader()
+        actual = loader(json_str)
+        self.assertEqual(expected, actual)
+
+    def test_json_file_loader(self):
+        json_file = os.path.join(TestLoaders.data_dir, "test_01.json")
+        expected = {"hello": "world", "data": [1, 2, 3]}
+        loader = jsondiff.JsonLoader()
+        with open(json_file) as f:
+            actual = loader(f)
+        self.assertEqual(expected, actual)
+
+    def test_yaml_string_loader(self):
+        json_str = """---
+hello: world
+data:
+  - 1
+  - 2
+  - 3
+        """
+        expected = {"hello": "world", "data": [1, 2, 3]}
+        loader = jsondiff.YamlLoader()
+        actual = loader(json_str)
+        self.assertEqual(expected, actual)
+
+    def test_yaml_file_loader(self):
+        yaml_file = os.path.join(TestLoaders.data_dir, "test_01.yaml")
+        expected = {"hello": "world", "data": [1, 2, 3]}
+        loader = jsondiff.YamlLoader()
+        with open(yaml_file) as f:
+            actual = loader(f)
+        self.assertEqual(expected, actual)
+
+
+class TestDumpers(unittest.TestCase):
+
+    def test_json_dump_string(self):
+        data = {"hello": "world", "data": [1, 2, 3]}
+        expected = '{"hello": "world", "data": [1, 2, 3]}'
+        dumper = jsondiff.JsonDumper()
+        actual = dumper(data)
+        self.assertEqual(expected, actual)
+
+    def test_json_dump_string_indented(self):
+        data = {"hello": "world", "data": [1, 2, 3]}
+        expected = """{
+    "hello": "world",
+    "data": [
+        1,
+        2,
+        3
+    ]
+}"""
+        dumper = jsondiff.JsonDumper(indent=4)
+        actual = dumper(data)
+        self.assertEqual(expected, actual)
+
+    def test_json_dump_string_fp(self):
+        data = {"hello": "world", "data": [1, 2, 3]}
+        expected = """{
+    "hello": "world",
+    "data": [
+        1,
+        2,
+        3
+    ]
+}"""
+        dumper = jsondiff.JsonDumper(indent=4)
+        buffer = io.StringIO()
+        dumper(data, buffer)
+        self.assertEqual(expected, buffer.getvalue())
+
+    def test_yaml_dump_string(self):
+        data = {"hello": "world", "data": [1, 2, 3]}
+        expected = """data:
+- 1
+- 2
+- 3
+hello: world
+"""
+        # Sort keys just to make things deterministic
+        dumper = jsondiff.YamlDumper(sort_keys=True)
+        actual = dumper(data)
+        self.assertEqual(expected, actual)
+
+    def test_yaml_dump_string_fp(self):
+        data = {"hello": "world", "data": [1, 2, 3]}
+        expected = """data:
+- 1
+- 2
+- 3
+hello: world
+"""
+        # Sort keys just to make things deterministic
+        dumper = jsondiff.YamlDumper(sort_keys=True)
+        buffer = io.StringIO()
+        dumper(data, buffer)
+        self.assertEqual(expected, buffer.getvalue())
