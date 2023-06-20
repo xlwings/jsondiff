@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "jsondiff"
 description = "Diff JSON and JSON-like structures in Python"
-dynamic = ["version"]
+dynamic = ["version", "dependencies", "optional-dependencies"]
 readme = "README.rst"
 license= {file = "LICENSE" }
 requires-python = ">=3.8"
@@ -16,15 +16,6 @@ keywords = ['json', 'diff', 'diffing', 'difference', 'patch', 'delta', 'dict', '
 classifiers = [
     'License :: OSI Approved :: MIT License',
     'Programming Language :: Python :: 3',
-]
-dependencies = [
-    "pyyaml"
-]
-
-[project.optional-dependencies]
-test = [
-    "hypothesis",
-    "pytest"
 ]
 
 [project.urls]
@@ -40,3 +31,7 @@ exclude = ["tests*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "jsondiff.__version__"}
+dependencies = {file=["requirements.txt"]}
+
+[tool.setuptools.dynamic.optional-dependencies]
+dev = {file=["requirements-dev.txt"]}

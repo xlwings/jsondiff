@@ -94,3 +94,26 @@ Examples:
     $ jdiff a.json b.json -i 2 -s symmetric
 
     $ jdiff a.yaml b.yaml -f yaml -s symmetric
+
+Development
+-----------
+
+Install development dependencies and test locally with
+
+.. code-block:: bash
+
+    pip install -r requirements-dev.txt
+    # ... do your work ... add tests ...
+    pytest
+
+Installing From Source
+----------------------
+
+To install from source run
+
+.. code-block:: bash
+
+    pip install .
+
+This will install the library and cli for `jsondiff` as well as its runtime
+dependencies.
