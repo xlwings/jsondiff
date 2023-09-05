@@ -2,6 +2,16 @@ import argparse
 import jsondiff
 import sys
 
+def load_file(serializer, file_path):
+    with open(file_path, "r") as f:
+        parsed = None
+        try:
+            parsed = serializer.deserialize_file(f)
+        except ValueError:
+            print(f"{file_path} is not valid {serializer.file_format}")
+        except FileNotFoundError:
+            print(f"{file_path} does not exist")
+    return parsed
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -18,35 +28,33 @@ def main():
 
     args = parser.parse_args()
 
-    # pyyaml _can_ load json but is ~20 times slower and has known issues so use
-    # the json from stdlib when json is specified.
-    serializers = {
-        "json": (jsondiff.JsonLoader(), jsondiff.JsonDumper(indent=args.indent)),
-        "yaml": (jsondiff.YamlLoader(), jsondiff.YamlDumper(indent=args.indent)),
-    }
-    loader, dumper = serializers[args.format]
+    serializer = jsondiff.Serializer(args.format, args.indent)
 
-    with open(args.first, "r") as f:
-        with open(args.second, "r") as g:
-            jf = loader(f)
-            jg = loader(g)
-            if args.patch:
-                x = jsondiff.patch(
-                    jf,
-                    jg,
-                    marshal=True,
-                    syntax=args.syntax
-                )
-            else:
-                x = jsondiff.diff(
-                    jf,
-                    jg,
-                    marshal=True,
-                    syntax=args.syntax
-                )
+    parsed_first = load_file(serializer, args.first)
+    parsed_second = load_file(serializer, args.second)
 
-            dumper(x, sys.stdout)
+    if not (parsed_first and parsed_second):
+        return 1
 
+    if args.patch:
+        x = jsondiff.patch(
+            parsed_first,
+            parsed_second,
+            marshal=True,
+            syntax=args.syntax
+        )
+    else:
+        x = jsondiff.diff(
+            parsed_first,
+            parsed_second,
+            marshal=True,
+            syntax=args.syntax
+        )
+
+    serializer.serialize_data(x, sys.stdout)
+
+    return 0
 
 if __name__ == '__main__':
-    main()
+    ret = main()
+    sys.exit(ret)
