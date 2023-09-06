@@ -4,6 +4,9 @@ import sys
 import json
 import yaml
 
+from json import JSONDecodeError
+from yaml import YAMLError
+
 from .symbols import *
 from .symbols import Symbol
 
@@ -55,6 +58,10 @@ class JsonLoader(object):
         self.kwargs = kwargs
 
     def __call__(self, src):
+        """Parse and return JSON data
+        :param src: str|file-like source
+        :return: dict parsed data
+        """
         if isinstance(src, string_types):
             return json.loads(src, **self.kwargs)
         else:
@@ -73,6 +80,47 @@ class YamlLoader(object):
         :return: dict parsed data
         """
         return yaml.safe_load(src)
+
+class Serializer:
+    """Serializer helper loads and stores object data
+    :param file_format: str json or yaml
+    :param indent: int Output indentation in spaces
+    :raise ValueError: file_path does not contains valid file_format data
+    """
+
+    def __init__(self, file_format, indent):
+        # pyyaml _can_ load json but is ~20 times slower and has known issues so use
+        # the json from stdlib when json is specified.
+        self.serializers = {
+            "json": (JsonLoader(), JsonDumper(indent=indent)),
+            "yaml": (YamlLoader(), YamlDumper(indent=indent)),
+        }
+        self.file_format = file_format
+        if file_format not in self.serializers:
+            raise ValueError(f"Unsupported serialization format {file_format}, expected one of {self.serializers.keys()}")
+
+    def deserialize_file(self, src):
+        """Deserialize file from the specified format
+        :param file_path: str path to file
+        :param src: str|file-like source
+        :return dict
+        :raise ValueError: file_path does not contain valid file_format data
+        """
+        loader, _ = self.serializers[self.file_format]
+        try:
+            parsed = loader(src)
+        except (JSONDecodeError, YAMLError) as ex:
+            raise ValueError(f"Invalid {self.file_format} file") from ex
+        return parsed
+
+    def serialize_data(self, obj, stream):
+        """Serialize obj and write to stream
+        :param obj: dict to serialize
+        :param stream: Writeable stream
+        """
+        _, dumper = self.serializers[self.file_format]
+        dumper(obj, stream)
+
 
 class JsonDiffSyntax(object):
     def emit_set_diff(self, a, b, s, added, removed):
@@ -667,5 +715,6 @@ __all__ = [
     "JsonDumper",
     "JsonLoader",
     "YamlDumper",
-    "YamlLoader"
+    "YamlLoader",
+    "Serializer",
 ]
