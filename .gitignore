@@ -59,3 +59,6 @@ target/
 .idea
 
 .hypothesis/
+
+# Ignore auto-generated _version
+/jsondiff/_version.py

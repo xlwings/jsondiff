@@ -1,3 +1,4 @@
 hypothesis
 pytest
 setuptools-scm
+build
