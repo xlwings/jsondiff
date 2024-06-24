@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=43.0.0", "wheel"]
+requires = ["setuptools>=64.0.0", "setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -30,8 +30,10 @@ include = ["jsondiff*"]
 exclude = ["tests*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "jsondiff.__version__"}
 dependencies = {file=["requirements.txt"]}
+
+[tool.setuptools_scm]
+version_file = "jsondiff/_version.py"
 
 [tool.setuptools.dynamic.optional-dependencies]
 dev = {file=["requirements-dev.txt"]}
