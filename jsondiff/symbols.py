@@ -1,5 +1,4 @@
-
-class Symbol(object):
+class Symbol:
     def __init__(self, label):
         self._label = label
 

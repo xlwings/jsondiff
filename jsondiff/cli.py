@@ -3,7 +3,7 @@ import jsondiff
 import sys
 
 def load_file(serializer, file_path):
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         parsed = None
         try:
             parsed = serializer.deserialize_file(f)
