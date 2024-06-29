@@ -6,7 +6,7 @@ import unittest
 import pytest
 
 import jsondiff
-from jsondiff import diff, replace, add, discard, insert, delete, update, JsonDiffer
+from jsondiff import diff, replace, add, discard, insert, delete, JsonDiffer
 
 from .utils import generate_random_json, perturbate_json
 
