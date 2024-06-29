@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "jsondiff"
 description = "Diff JSON and JSON-like structures in Python"
 dynamic = ["version", "dependencies", "optional-dependencies"]
-readme = "README.rst"
+readme = "README.md"
 license= {file = "LICENSE" }
 requires-python = ">=3.8"
 authors = [
