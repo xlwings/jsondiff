@@ -1,6 +1,5 @@
 # this is used for generating the repo front page
 
-from __future__ import print_function
 
 def do(cmd, comment=None):
     if comment:

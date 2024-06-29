@@ -24,7 +24,7 @@ else:
     string_types = basestring
 
 
-class JsonDumper(object):
+class JsonDumper:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
@@ -38,7 +38,7 @@ class JsonDumper(object):
 default_dumper = JsonDumper()
 
 
-class YamlDumper(object):
+class YamlDumper:
     """Write object as YAML string"""
 
     def __init__(self, **kwargs):
@@ -52,7 +52,7 @@ class YamlDumper(object):
         """
         return yaml.dump(obj, dest, **self.kwargs)
 
-class JsonLoader(object):
+class JsonLoader:
     def __init__(self, **kwargs):
         self.kwargs = kwargs
 
@@ -70,7 +70,7 @@ class JsonLoader(object):
 default_loader = JsonLoader()
 
 
-class YamlLoader(object):
+class YamlLoader:
     """Load YAML data from file-like object or string"""
 
     def __call__(self, src):
@@ -121,7 +121,7 @@ class Serializer:
         dumper(obj, stream)
 
 
-class JsonDiffSyntax(object):
+class JsonDiffSyntax:
     def emit_set_diff(self, a, b, s, added, removed):
         raise NotImplementedError()
 
@@ -141,7 +141,7 @@ class JsonDiffSyntax(object):
         raise NotImplementedError()
 
 
-class CompactJsonDiffSyntax(object):
+class CompactJsonDiffSyntax:
     def emit_set_diff(self, a, b, s, added, removed):
         if s == 0.0 or len(removed) == len(a):
             return {replace: b} if isinstance(b, dict) else b
@@ -230,7 +230,7 @@ class CompactJsonDiffSyntax(object):
         return d
 
 
-class ExplicitJsonDiffSyntax(object):
+class ExplicitJsonDiffSyntax:
     def emit_set_diff(self, a, b, s, added, removed):
         if s == 0.0 or len(removed) == len(a):
             return b
@@ -277,7 +277,7 @@ class ExplicitJsonDiffSyntax(object):
             return b
 
 
-class SymmetricJsonDiffSyntax(object):
+class SymmetricJsonDiffSyntax:
     def emit_set_diff(self, a, b, s, added, removed):
         if s == 0.0 or len(removed) == len(a):
             return [a, b]
@@ -447,9 +447,9 @@ builtin_syntaxes = {
 }
 
 
-class JsonDiffer(object):
+class JsonDiffer:
 
-    class Options(object):
+    class Options:
         pass
 
     def __init__(self, syntax='compact', load=False, dump=False, marshal=False,

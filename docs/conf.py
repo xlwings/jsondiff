@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # jsondiff documentation build configuration file, created by
 # sphinx-quickstart on Fri Nov 13 17:39:49 2015.
@@ -46,9 +45,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'jsondiff'
-copyright = u'2015, Eric Reynolds'
-author = u'Eric Reynolds'
+project = 'jsondiff'
+copyright = '2015, Eric Reynolds'
+author = 'Eric Reynolds'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -222,8 +221,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  (master_doc, 'jsondiff.tex', u'jsondiff Documentation',
-   u'Eric Reynolds', 'manual'),
+  (master_doc, 'jsondiff.tex', 'jsondiff Documentation',
+   'Eric Reynolds', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -266,7 +265,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  (master_doc, 'jsondiff', u'jsondiff Documentation',
+  (master_doc, 'jsondiff', 'jsondiff Documentation',
    author, 'jsondiff', 'One line description of project.',
    'Miscellaneous'),
 ]
