@@ -467,12 +467,12 @@ class JsonDiffer:
             for symbol in _all_symbols_
         }
 
-    def _list_diff_0(self, C, X, Y):
+    def _list_diff_0(self, C, X, Y, similarity):
         i, j = len(X), len(Y)
         r = []
         while True:
             if i > 0 and j > 0:
-                d, s = self._obj_diff(X[i-1], Y[j-1])
+                d, s = similarity[i-1][j-1]
                 if s > 0 and C[i][j] == C[i-1][j-1] + s:
                     r.append((0, d, j-1, s))
                     i, j = i - 1, j - 1
@@ -493,9 +493,12 @@ class JsonDiffer:
         n = len(Y)
         # An (m+1) times (n+1) matrix
         C = [[0 for j in range(n+1)] for i in range(m+1)]
+        similarity = [[0 for j in range(n)] for i in range(m)]
         for i in range(1, m+1):
             for j in range(1, n+1):
-                _, s = self._obj_diff(X[i-1], Y[j-1])
+                child_diff = self._obj_diff(X[i-1], Y[j-1])
+                similarity[i-1][j-1] = child_diff
+                s = child_diff[1]
                 # Following lines are part of the original LCS algorithm
                 # left in the code in case modification turns out to be problematic
                 #if X[i-1] == Y[j-1]:
@@ -507,7 +510,7 @@ class JsonDiffer:
         changed = {}
         tot_s = 0.0
 
-        for sign, value, pos, s in self._list_diff_0(C, X, Y):
+        for sign, value, pos, s in self._list_diff_0(C, X, Y, similarity):
             if sign == 1:
                 inserted.append((pos, value))
             elif sign == -1:
