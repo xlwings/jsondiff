@@ -1,4 +1,3 @@
-import sys
 import json
 import yaml
 
@@ -14,15 +13,6 @@ from ._version import __version__
 # - when source is dict and diff is a dict -> patch
 # - when source is list and diff is a list patch dict -> patch
 # - else -> replacement
-
-# Python 2 vs 3
-PY3 = sys.version_info[0] == 3
-
-if PY3:
-    string_types = str
-else:
-    string_types = basestring
-
 
 class JsonDumper:
     def __init__(self, **kwargs):
@@ -61,7 +51,7 @@ class JsonLoader:
         :param src: str|file-like source
         :return: dict parsed data
         """
-        if isinstance(src, string_types):
+        if isinstance(src, str):
             return json.loads(src, **self.kwargs)
         else:
             return json.load(src, **self.kwargs)
@@ -1020,7 +1010,7 @@ class JsonDiffer:
         """
         Unescapes a string that has been escaped.
         """
-        if isinstance(x, string_types):
+        if isinstance(x, str):
             sym = self._symbol_map.get(x, None)
             if sym is not None:
                 return sym
@@ -1051,7 +1041,7 @@ class JsonDiffer:
         """
         if type(o) is Symbol:
             return self.options.escape_str + o.label
-        if isinstance(o, string_types) and o.startswith(self.options.escape_str):
+        if isinstance(o, str) and o.startswith(self.options.escape_str):
             return self.options.escape_str + o
         return o
 
