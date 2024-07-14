@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.2 (Jul, 14th 2024)
+
+* really drop python<=3.7 support by @kloczek in https://github.com/xlwings/jsondiff/pull/78
+* Added docstrings by @payam54 in https://github.com/xlwings/jsondiff/pull/79
+* remove last bits of python2 support by @corytodd in https://github.com/xlwings/jsondiff/pull/80
+
 ## 2.1.1 (Jun, 28th 2024)
 
 Fix pypi release readme formatting
