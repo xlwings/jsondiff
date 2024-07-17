@@ -25,7 +25,7 @@ Diff JSON and JSON-like structures in Python.
 >>> diff({'a': [0, {'b': 4}, 1]}, {'a': [0, {'b': 5}, 1]})
 {'a': {1: {'b': 5}}}
 
-# You can exclude some jsonpaths from the diff (doesn't work if the value types are different
+# You can exclude some jsonpaths from the diff (doesn't work if the value types are different)
 >>> diff({'a': 1, 'b': {'b1': 2, 'b2': 22}, 'c': 3},  {'a': 1, 'b': {'b1': 20, 'b2': 22}, 'c': 30}, exclude_paths=['b.b1', 'c'])
 {}
 
