@@ -950,13 +950,15 @@ class JsonDiffer:
         else:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
 
-    def diff(self, a, b, fp=None, exclude_paths=None):
+    def diff(self, a, b, fp=None, exclude_paths: list = None) -> dict:
         """
         Computes the difference between two JSON structures.
+        :param a: The original JSON structure.
+        :param b: The modified JSON structure.
+        :param fp: Optional file pointer to dump the diff to.
+        :param exclude_paths: Optional list of string paths to exclude from the diff.
         """
         if not exclude_paths:
-            # The 'exclude_paths' argument would be a list of strings, where each string is a JSONPath that should be
-            # ignored during the diff operation.
             exclude_paths = []
         if self.options.load:
             a = self.options.loader(a)

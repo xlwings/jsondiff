@@ -322,12 +322,12 @@ hello: world
     def test_exclude_paths(self):
         differ = JsonDiffer()
 
-        a = {'a': 1, 'b': {'b1': 21, 'b2': 22}, 'c': 3}
-        b = {'a': 1, 'b': {'b1': 20, 'b2': 22}, 'c': 30}
+        a = {'a': 1, 'b': {'b1': 20, 'b2': 21}, 'c': 3}
+        b = {'a': 1, 'b': {'b1': 22, 'b2': 23}, 'c': 30}
 
         exclude_paths = ['b.b1', 'c']
 
         d = differ.diff(a, b, exclude_paths=exclude_paths)
 
         # The diff should only contain changes that are not in the exclude_paths
-        self.assertEqual({}, d)
+        self.assertEqual({'b': {'b2': 23}}, d)
