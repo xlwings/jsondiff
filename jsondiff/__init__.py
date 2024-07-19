@@ -891,7 +891,7 @@ class JsonDiffer:
         s = s_common / n_tot if n_tot != 0 else 1.0
         return self.options.syntax.emit_set_diff(a, b, s, added, removed), s
 
-    def _dict_diff(self, a, b):
+    def _dict_diff(self, a, b, exclude_paths, path):
         """
         Computes the difference between two dictionaries.
         """
@@ -903,32 +903,42 @@ class JsonDiffer:
         added = {}
         changed = {}
         for k, v in a.items():
+            new_path = f'{path}.{k}' if path else k
+            if new_path in exclude_paths:
+                continue
             w = b.get(k, missing)
             if w is missing:
                 nremoved += 1
                 removed[k] = v
             else:
                 nmatched += 1
-                d, s = self._obj_diff(v, w)
+                d, s = self._obj_diff(v, w, exclude_paths, new_path)
                 if s < 1.0:
                     changed[k] = d
                 smatched += 0.5 + 0.5 * s
         for k, v in b.items():
             if k not in a:
+                new_path = f'{path}.{k}' if path else k
+                if new_path in exclude_paths:
+                    continue
                 nadded += 1
                 added[k] = v
         n_tot = nremoved + nmatched + nadded
         s = smatched / n_tot if n_tot != 0 else 1.0
         return self.options.syntax.emit_dict_diff(a, b, s, added, changed, removed), s
 
-    def _obj_diff(self, a, b):
+    def _obj_diff(self, a, b, exclude_paths=None, path=''):
         """
         Computes the difference between any two JSON-compatible objects.
         """
+        if not exclude_paths:
+            exclude_paths = []
+        if path in exclude_paths:
+            return {}, 1.0
         if a is b:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
         if isinstance(a, dict) and isinstance(b, dict):
-            return self._dict_diff(a, b)
+            return self._dict_diff(a, b, exclude_paths, path)
         elif isinstance(a, tuple) and isinstance(b, tuple):
             return self._list_diff(a, b)
         elif isinstance(a, list) and isinstance(b, list):
@@ -940,15 +950,21 @@ class JsonDiffer:
         else:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
 
-    def diff(self, a, b, fp=None):
+    def diff(self, a, b, fp=None, exclude_paths: list = None) -> dict:
         """
         Computes the difference between two JSON structures.
+        :param a: The original JSON structure.
+        :param b: The modified JSON structure.
+        :param fp: Optional file pointer to dump the diff to.
+        :param exclude_paths: Optional list of string paths to exclude from the diff.
         """
+        if not exclude_paths:
+            exclude_paths = []
         if self.options.load:
             a = self.options.loader(a)
             b = self.options.loader(b)
 
-        d, s = self._obj_diff(a, b)
+        d, s = self._obj_diff(a, b, exclude_paths)
 
         if self.options.marshal or self.options.dump:
             d = self.marshal(d)
