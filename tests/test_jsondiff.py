@@ -169,6 +169,14 @@ class JsonDiffTests(unittest.TestCase):
                      id="issue36_"),
         pytest.param({1: 2}, {5: 3}, "compact", {replace: {5: 3}},
                      id="issue36_"),
+        pytest.param([{"hi": "wombat"}],[], "compact", {delete: [0]},
+                     id="issue83_1"),
+        pytest.param([], [{"hi": "wombat"}], "compact", [{"hi": "wombat"}],
+                     id="issue83_2"),
+        pytest.param([{"hi": "wombat"}],[], "symmetric", {delete: [(0, {"hi": "wombat"})]},
+                     id="issue83_3"),
+        pytest.param([{"hi": "wombat"}],[], "explicit", {delete: [0]},
+                     id="issue83_4")
     ],
 )
 class TestSpecificIssue:
