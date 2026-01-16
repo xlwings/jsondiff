@@ -1,4 +1,6 @@
 import json
+import typing
+
 import yaml
 
 from json import JSONDecodeError
@@ -951,7 +953,7 @@ class JsonDiffer:
         else:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
 
-    def diff(self, a, b, fp=None, exclude_paths: list | Pattern = None) -> dict:
+    def diff(self, a, b, fp=None, exclude_paths: typing.Union[list, Pattern] = None) -> dict:
         """
         Computes the difference between two JSON structures.
         :param a: The original JSON structure.
@@ -1121,7 +1123,7 @@ def similarity(a, b, cls=JsonDiffer, **kwargs):
     return cls(**kwargs).similarity(a, b)
 
 
-def exclude_path(path: str, exclude_paths: list | Pattern) -> bool:
+def exclude_path(path: str, exclude_paths: typing.Union[str, int]) -> bool:
     """
     Determine if the given json path should be excluded from the diff.
 
