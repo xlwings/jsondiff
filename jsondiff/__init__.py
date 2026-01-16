@@ -1123,7 +1123,7 @@ def similarity(a, b, cls=JsonDiffer, **kwargs):
     return cls(**kwargs).similarity(a, b)
 
 
-def exclude_path(path: str, exclude_paths: typing.Union[str, int]) -> bool:
+def exclude_path(path: str, exclude_paths: typing.Union[list, Pattern]) -> bool:
     """
     Determine if the given json path should be excluded from the diff.
 
