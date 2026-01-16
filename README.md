@@ -33,6 +33,10 @@ Diff JSON and JSON-like structures in Python.
 >>> diff({'a': [0, {'b': 4}, 1]}, {'a': [0, {'c': 5}, 1]})
 {'a': {insert: [(1, {'c': 5})], delete: [1]}}
 
+# exclude_paths can optionally accept a regular expression pattern (Note that it must be of type re.Pattern)
+>>> diff({'a': 1, 'b': {'_b1': 20, 'b2': 21}, '_c': 3},  {'a': 1, 'b': {'_b1': 22, 'b2': 23}, '_c': 30}, exclude_paths=re.compile(r'.*\b_'))
+{'b': {'b2': 23}}  # the regex matches any keys that start with an underscore, so they are omitted
+
 # Support for various diff syntaxes
 >>> diff({'a': 1, 'b': 2}, {'b': 3, 'c': 4}, syntax='explicit')
 {insert: {'c': 4}, update: {'b': 3}, delete: ['a']}

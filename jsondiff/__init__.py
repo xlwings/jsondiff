@@ -2,6 +2,7 @@ import json
 import yaml
 
 from json import JSONDecodeError
+from re import Pattern
 from yaml import YAMLError
 
 from .symbols import *
@@ -904,7 +905,7 @@ class JsonDiffer:
         changed = {}
         for k, v in a.items():
             new_path = f'{path}.{k}' if path else k
-            if new_path in exclude_paths:
+            if exclude_path(new_path, exclude_paths):
                 continue
             w = b.get(k, missing)
             if w is missing:
@@ -919,7 +920,7 @@ class JsonDiffer:
         for k, v in b.items():
             if k not in a:
                 new_path = f'{path}.{k}' if path else k
-                if new_path in exclude_paths:
+                if exclude_path(new_path, exclude_paths):
                     continue
                 nadded += 1
                 added[k] = v
@@ -933,7 +934,7 @@ class JsonDiffer:
         """
         if not exclude_paths:
             exclude_paths = []
-        if path in exclude_paths:
+        if exclude_path(path, exclude_paths):
             return {}, 1.0
         if a is b:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
@@ -950,7 +951,7 @@ class JsonDiffer:
         else:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
 
-    def diff(self, a, b, fp=None, exclude_paths: list = None) -> dict:
+    def diff(self, a, b, fp=None, exclude_paths: list | Pattern = None) -> dict:
         """
         Computes the difference between two JSON structures.
         :param a: The original JSON structure.
@@ -1118,6 +1119,20 @@ def similarity(a, b, cls=JsonDiffer, **kwargs):
     :return: A similarity score as a float between 0.0 and 1.0.
     """
     return cls(**kwargs).similarity(a, b)
+
+
+def exclude_path(path: str, exclude_paths: list | Pattern) -> bool:
+    """
+    Determine if the given json path should be excluded from the diff.
+
+    :param path: The path to evaluate.
+    :param exclude_paths: Either a list of paths to exclude or a regular expression to match against.
+    """
+    try:
+        # Assume a list is provided to avoid any performance degradation from type-checking.
+        return path in exclude_paths
+    except TypeError:
+        return bool(exclude_paths.match(path))
 
 
 __all__ = [

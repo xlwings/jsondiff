@@ -1,6 +1,7 @@
 import io
 import logging
 import os.path
+import re
 import sys
 import unittest
 import pytest
@@ -330,4 +331,17 @@ hello: world
         d = differ.diff(a, b, exclude_paths=exclude_paths)
 
         # The diff should only contain changes that are not in the exclude_paths
+        self.assertEqual({'b': {'b2': 23}}, d)
+
+    def test_exclude_paths_regex(self):
+        differ = JsonDiffer()
+
+        a = {'a': 1, 'b': {'_b1': 20, 'b2': 21}, '_c': 3}
+        b = {'a': 1, 'b': {'_b1': 22, 'b2': 23}, '_c': 30}
+
+        exclude_paths = re.compile(r'.*\b_')  # matches any path containing parts that start with an underscore
+
+        d = differ.diff(a, b, exclude_paths=exclude_paths)
+
+        # The diff should only contain changes that do not match the regular expression
         self.assertEqual({'b': {'b2': 23}}, d)
