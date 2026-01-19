@@ -749,6 +749,18 @@ builtin_syntaxes = {
 }
 
 
+class PathExcluder:
+    def __init__(self, exclude_paths: typing.Union[list, Pattern]):
+        if isinstance(exclude_paths, Pattern):
+            self._check = exclude_paths.match
+        else:
+            exclude_set = set(exclude_paths) if exclude_paths else set()
+            self._check = exclude_set.__contains__
+
+    def should_exclude(self, path: str) -> bool:
+        return bool(self._check(path))
+
+
 class JsonDiffer:
     """
     A class for computing differences between two JSON structures and applying patches based on these differences.
@@ -775,7 +787,7 @@ class JsonDiffer:
         pass
 
     def __init__(self, syntax='compact', load=False, dump=False, marshal=False,
-                 loader=default_loader, dumper=default_dumper, escape_str='$'):
+                 loader=default_loader, dumper=default_dumper, escape_str='$', exclude_paths=None):
         """
         Initializes the JsonDiffer with specified options.
 
@@ -786,6 +798,7 @@ class JsonDiffer:
         :param loader: Custom function for loading JSON data.
         :param dumper: Custom function for dumping JSON data.
         :param escape_str: String used to escape special characters in keys.
+        :param exclude_paths: Either a list of paths to exclude or a re.Pattern matching paths that should be excluded
         """
         self.options = JsonDiffer.Options()
         self.options.syntax = builtin_syntaxes.get(syntax, syntax)
@@ -795,6 +808,7 @@ class JsonDiffer:
         self.options.loader = loader
         self.options.dumper = dumper
         self.options.escape_str = escape_str
+        self._path_excluder = PathExcluder(exclude_paths)
         self._symbol_map = {
             escape_str + symbol.label: symbol
             for symbol in _all_symbols_
@@ -894,7 +908,7 @@ class JsonDiffer:
         s = s_common / n_tot if n_tot != 0 else 1.0
         return self.options.syntax.emit_set_diff(a, b, s, added, removed), s
 
-    def _dict_diff(self, a, b, exclude_paths, path):
+    def _dict_diff(self, a, b, path):
         """
         Computes the difference between two dictionaries.
         """
@@ -907,7 +921,7 @@ class JsonDiffer:
         changed = {}
         for k, v in a.items():
             new_path = f'{path}.{k}' if path else k
-            if exclude_path(new_path, exclude_paths):
+            if self._path_excluder.should_exclude(new_path):
                 continue
             w = b.get(k, missing)
             if w is missing:
@@ -915,14 +929,14 @@ class JsonDiffer:
                 removed[k] = v
             else:
                 nmatched += 1
-                d, s = self._obj_diff(v, w, exclude_paths, new_path)
+                d, s = self._obj_diff(v, w, new_path)
                 if s < 1.0:
                     changed[k] = d
                 smatched += 0.5 + 0.5 * s
         for k, v in b.items():
             if k not in a:
                 new_path = f'{path}.{k}' if path else k
-                if exclude_path(new_path, exclude_paths):
+                if self._path_excluder.should_exclude(new_path):
                     continue
                 nadded += 1
                 added[k] = v
@@ -930,18 +944,16 @@ class JsonDiffer:
         s = smatched / n_tot if n_tot != 0 else 1.0
         return self.options.syntax.emit_dict_diff(a, b, s, added, changed, removed), s
 
-    def _obj_diff(self, a, b, exclude_paths=None, path=''):
+    def _obj_diff(self, a, b, path=''):
         """
         Computes the difference between any two JSON-compatible objects.
         """
-        if not exclude_paths:
-            exclude_paths = []
-        if exclude_path(path, exclude_paths):
+        if self._path_excluder.should_exclude(path):
             return {}, 1.0
         if a is b:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
         if isinstance(a, dict) and isinstance(b, dict):
-            return self._dict_diff(a, b, exclude_paths, path)
+            return self._dict_diff(a, b, path)
         elif isinstance(a, tuple) and isinstance(b, tuple):
             return self._list_diff(a, b)
         elif isinstance(a, list) and isinstance(b, list):
@@ -953,21 +965,18 @@ class JsonDiffer:
         else:
             return self.options.syntax.emit_value_diff(a, b, 1.0), 1.0
 
-    def diff(self, a, b, fp=None, exclude_paths: typing.Union[list, Pattern] = None) -> dict:
+    def diff(self, a, b, fp=None) -> dict:
         """
         Computes the difference between two JSON structures.
         :param a: The original JSON structure.
         :param b: The modified JSON structure.
         :param fp: Optional file pointer to dump the diff to.
-        :param exclude_paths: Optional list of string paths to exclude from the diff.
         """
-        if not exclude_paths:
-            exclude_paths = []
         if self.options.load:
             a = self.options.loader(a)
             b = self.options.loader(b)
 
-        d, s = self._obj_diff(a, b, exclude_paths)
+        d, s = self._obj_diff(a, b)
 
         if self.options.marshal or self.options.dump:
             d = self.marshal(d)
@@ -1121,20 +1130,6 @@ def similarity(a, b, cls=JsonDiffer, **kwargs):
     :return: A similarity score as a float between 0.0 and 1.0.
     """
     return cls(**kwargs).similarity(a, b)
-
-
-def exclude_path(path: str, exclude_paths: typing.Union[list, Pattern]) -> bool:
-    """
-    Determine if the given json path should be excluded from the diff.
-
-    :param path: The path to evaluate.
-    :param exclude_paths: Either a list of paths to exclude or a regular expression to match against.
-    """
-    try:
-        # Assume a list is provided to avoid any performance degradation from type-checking.
-        return path in exclude_paths
-    except TypeError:
-        return bool(exclude_paths.match(path))
 
 
 __all__ = [
