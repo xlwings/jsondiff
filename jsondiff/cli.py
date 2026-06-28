@@ -33,7 +33,7 @@ def main():
     parsed_first = load_file(serializer, args.first)
     parsed_second = load_file(serializer, args.second)
 
-    if not (parsed_first and parsed_second):
+    if parsed_first is None or parsed_second is None:
         return 1
 
     if args.patch:
