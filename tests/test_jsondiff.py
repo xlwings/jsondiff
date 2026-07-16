@@ -120,9 +120,44 @@ class JsonDiffTests(unittest.TestCase):
         a, b = scenario
         differ = JsonDiffer(syntax='explicit')
         d = differ.diff(a, b)
-        # self.assertEqual(b, differ.patch(a, d))
+        self.assertEqual(b, differ.patch(a, d))
         dm = differ.marshal(d)
         self.assertEqual(d, differ.unmarshal(dm))
+
+    def test_explicit_syntax_patches_dicts(self):
+        a = {'keep': 1, 'change': {'value': 2}, 'delete': 3}
+        b = {'keep': 1, 'change': {'value': 4}, 'insert': 5}
+        differ = JsonDiffer(syntax='explicit')
+
+        self.assertEqual(b, differ.patch(a, differ.diff(a, b)))
+
+    def test_explicit_syntax_patches_lists(self):
+        a = ['keep', {'value': 2}, 'delete']
+        b = ['insert', 'keep', {'value': 4}]
+        differ = JsonDiffer(syntax='explicit')
+
+        self.assertEqual(b, differ.patch(a, differ.diff(a, b)))
+
+    def test_explicit_syntax_patches_tuples(self):
+        a = ('keep', {'value': 2}, 'delete')
+        b = ('insert', 'keep', {'value': 4})
+        differ = JsonDiffer(syntax='explicit')
+
+        self.assertEqual(b, differ.patch(a, differ.diff(a, b)))
+
+    def test_explicit_syntax_patches_sets(self):
+        a = {'keep', 'delete'}
+        b = {'keep', 'insert'}
+        differ = JsonDiffer(syntax='explicit')
+
+        self.assertEqual(b, differ.patch(a, differ.diff(a, b)))
+
+    def test_explicit_syntax_replaces_a_sequence_with_a_dict(self):
+        a = (None,)
+        b = {'value': None}
+        differ = JsonDiffer(syntax='explicit')
+
+        self.assertEqual(b, differ.patch(a, differ.diff(a, b)))
 
     @given(strategies.randoms().map(generate_scenario))
     @settings(max_examples=1000)
