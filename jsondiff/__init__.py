@@ -1031,7 +1031,7 @@ class JsonDiffer:
             if sym is not None:
                 return sym
             if x.startswith(self.options.escape_str):
-                return x[1:]
+                return x[len(self.options.escape_str):]
         return x
 
     def unmarshal(self, d):
