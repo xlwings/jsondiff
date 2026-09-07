@@ -96,6 +96,28 @@ class JsonDiffTests(unittest.TestCase):
 
         self.assertEqual(d, differ.unmarshal(dm))
 
+    def test_marshal_multi_char_escape_str(self):
+        differ = JsonDiffer(escape_str='__')
+
+        d = {
+            delete: 3,
+            '__delete': 4,
+            insert: 4,
+            '____something': 1
+        }
+
+        dm = differ.marshal(d)
+
+        self.assertEqual(d, differ.unmarshal(dm))
+
+    def test_patch_multi_char_escape_str(self):
+        a = {'__x': 1}
+        b = {'__x': 2}
+
+        d = diff(a, b, marshal=True, escape_str='__')
+
+        self.assertEqual(b, jsondiff.patch(a, d, marshal=True, escape_str='__'))
+
     @given(strategies.randoms().map(generate_scenario_no_sets))
     @settings(max_examples=1000)
     def test_dump(self, scenario):
