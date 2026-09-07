@@ -123,3 +123,17 @@ dependencies.
 python -m build
 twine check dist/*
 ```
+
+## Contributing
+
+1. Build and test your feature
+2. All new code, including bug fixes, must include unit tests
+3. Create a PR on GitHub
+  - Reference the issue number if there is one
+4. Collaborate with the maintainers as needed to get your changes merged
+
+### AI Policy
+
+Please disclose the use of AI when opening your PR. The use of AI does not
+disqualify your submission. Encourage your agents to practice brevity unless
+verbose detail is truly adding value.
