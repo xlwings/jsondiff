@@ -450,7 +450,44 @@ class ExplicitJsonDiffSyntax:
         if s == 1.0:
             return {}
         else:
-            return b
+            return {replace: b} if isinstance(b, dict) else b
+
+    def patch(self, a, d):
+        """Apply an explicit diff to a JSON structure."""
+        if not isinstance(d, dict):
+            return d
+        if not d:
+            return a
+        if replace in d:
+            return d[replace]
+        if isinstance(a, dict) and any(
+            operation in d for operation in (insert, update, delete)
+        ):
+            a = dict(a)
+            for key, value in d.get(insert, {}).items():
+                a[key] = value
+            for key, value in d.get(update, {}).items():
+                a[key] = self.patch(a[key], value)
+            for key in d.get(delete, []):
+                del a[key]
+            return a
+        if isinstance(a, (list, tuple)):
+            original_type = type(a)
+            a = list(a)
+            for position in d.get(delete, []):
+                a.pop(position)
+            for position, value in d.get(insert, []):
+                a.insert(position, value)
+            for position, value in d.items():
+                if position is not insert and position is not delete:
+                    a[position] = self.patch(a[position], value)
+            return a if original_type is list else original_type(a)
+        if isinstance(a, set):
+            a = set(a)
+            a.difference_update(d.get(discard, set()))
+            a.update(d.get(add, set()))
+            return a
+        return d
 
 
 class SymmetricJsonDiffSyntax:
